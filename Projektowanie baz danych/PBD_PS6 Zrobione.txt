@@ -1,0 +1,101 @@
+####################
+1. Na bazie tabeli Pracownicy utworzyæ now¹ tabelê Pracownicy_N. Utworzyæ wyzwalacz do generowania jednoznacznego identyfikatora pola tabeli, wstawianego przy wykonywaniu instrukcji INSERT. Do generowania identyfikatora u¿yæ sekwencji.
+
+set serveroutput on; 
+create table stanowiska_n
+as
+select * from EB.STANOWISKA;
+
+set serveroutput on; 
+create sequence seq_ps6_1
+minvalue 7934
+maxvalue 10000
+start with 7934
+increment by 1
+cache 20;
+
+set serveroutput on; 
+CREATE OR REPLACE TRIGGER tr_ps6_1
+BEFORE INSERT ON pracownicy_n
+FOR EACH ROW
+BEGIN
+select seq_ps6_1.nextval into :new.idpracownika from dual;
+END;
+
+set serveroutput on; 
+insert into pracownicy_n (imie, nazwisko, zwierzchnik, idstanowiska, dataurodzenia, datazatrudnienia, adres, miasto, kodpocztowy, kraj, telefon)
+values ('Adamaa', 'Acki', 7902, 2, '01-12-12', '03-12-12', 'Polna 18', 'Lomza', '18-222', 'Polska', 861321422);
+
+SELECT * from pracownicy_n;
+
+select seq_ps6_1.nextval from dual;
+
+####################
+2. Na bazie tabeli Stanowiska utworzyæ now¹ tabelê Stanowiska_N. Utworzyæ wyzwalacz, który bêdzie aktywowany po zmianie wartoœci pola klucza g³ównego tabeli Stanowiska_N i bêdzie modyfikowa³ klucz obcy tabeli Pracownicy_N, z ni¹ powi¹zanej.
+
+set serveroutput on; 
+create table stanowiska_nn
+as
+select * from EB.STANOWISKA;
+
+set serveroutput on; 
+CREATE OR REPLACE TRIGGER tr_ps6_2_nn
+BEFORE UPDATE OF idstanowiska ON stanowiska_nn
+FOR EACH ROW
+BEGIN
+UPDATE pracownicy_nn
+set idstanowiska = :new.idstanowiska
+where idstanowiska = :old.idstanowiska;
+END;
+
+set serveroutput on;
+update stanowiska_nn
+set idstanowiska = 10
+where idstanowiska = 1;
+
+SELECT * from stanowiska_nn;
+select * from pracownicy_nn;
+
+####################
+3. Napisaæ wyzwalacz, który bêdzie aktywowany przed wykonaniem polecenia wstawiania rekordów do tabeli Pracownicy_N z kluczem obcym IdStanowiska. Wyzwalacz powinien sprawdziæ czy wprowadzana wartoœæ jest ze zbioru wartoœci pola klucza g³ównego tabeli Stanowiska_N.
+
+set serveroutput on; 
+create table pracownicy_n2 (idpracownika, imie, nazwisko, idstanowiska)
+as
+select idpracownika, imie, nazwisko, idstanowiska from EB.PRACOWNICY;
+
+set serveroutput on; 
+CREATE OR REPLACE TRIGGER tr_ps6_3
+BEFORE INSERT ON pracownicy_n2
+FOR EACH ROW
+DECLARE
+v_l number(2);
+BEGIN
+select count(1) into v_l
+from stanowiska_nn
+where idstanowiska = :new.idstanowiska;
+if (v_l = 0) then
+dbms_output.put_line('Brak id w tabeli stanowiska: '|| :new.idstanowiska);
+raise_application_error(-20002, 'BLAD');
+end if;
+end;
+
+set serveroutput on; 
+insert into pracownicy_n2 values (7788, 'Adamaaaa', 'Acki', 32);
+
+####################
+4. Utworzyæ wyzwalacz, który bêdzie aktywowany gdy wartoœæ pola Cena w tabeli samochody, zwrócona przez kursor, bêdzie mniejsza od za³o¿onej (np. 1500). Wys³aæ odpowiedni komunikat.
+
+set serveroutput on; 
+CREATE OR REPLACE TRIGGER tr_ps6_4
+AFTER DELETE or UPDATE or INSERT ON samochody_nn
+BEGIN
+for i_rec in (select cena from samochody_nn)
+loop
+if i_rec. cena < 1500 then
+RAISE_application_error(-20003, 'samochod w cenie '||i_rec.cena|| 'bardzo tani');
+end if;
+end LOOP;
+end;
+
+insert into samochody_nn values (9227, 64, 120, 1995, 95000, 121, '05-01-10', 22, 2200);

@@ -1,0 +1,102 @@
+####################
+1. Napisaæ anonimowy blok PL/SQL wyœwietlaj¹cy komunikat.
+
+SET SERVEROUTPUT ON
+BEGIN
+DBMS_OUTPUT.PUT_LINE('PBD 2017');
+END;
+
+####################
+2. U¿ywaj¹c prostej konstrukcji IF...THEN...ELSE, wyœwietliæ odpowiedni komunikat w zale¿noœci od wartoœci zmiennej x.
+
+SET SERVEROUTPUT ON
+DECLARE
+x NUMBER(5) := &wp;
+BEGIN
+if (x > 0) then
+DBMS_OUTPUT.PUT_LINE('x > 0');
+else
+DBMS_OUTPUT.PUT_LINE('x < 0');
+end if;
+END;
+
+####################
+3. Napisaæ anonimowy bloku PL/SQL podaj¹cy np. œredni¹ cenê samochodów.
+
+SET SERVEROUTPUT ON
+DECLARE
+S_Cena Samochody.Cena%TYPE;
+BEGIN
+select avg(Cena) into S_Cena
+from Samochody S;
+DBMS_OUTPUT.PUT_LINE('Srednia cena samochodu wynosi:'||ROUND(S_Cena,2));
+END;
+
+####################
+4. Napisaæ anonimowy bloku PL/SQL podaj¹cy np. liczbê pracowników na stanowisku sprzedawca.
+
+SET SERVEROUTPUT ON
+DECLARE
+ile_prac Number(5,2);
+BEGIN
+select count(P.Id_pracownik) into ile_prac
+from Pracownicy P, Stanowiska St
+where P.stanowisko_pracownik = St.IdStanowiska
+and St.idstanowiska = 3;
+if (ile_prac > 3)
+then DBMS_OUTPUT.PUT_LINE('Liczba pracownikow na stwnowisku 3 jest wiêksza od 3: '||ile_prac*1.15);
+else DBMS_OUTPUT.PUT_LINE('Liczba pracownikow na stwnowisku 3 jest mniejsza od 3: '||ile_prac*0.6);
+end if;
+END;
+
+####################
+5. Napisaæ blok, który zwróci np. nazwê modelu samochodu o najwy¿szej cenie.
+
+SET SERVEROUTPUT ON
+DECLARE
+sam modele.nazwa%TYPE;
+cena Samochody.Cena%TYPE;
+BEGIN
+select max(a.cena) into cena from samochody a;
+select nazwa into sam
+from modele m, samochody s
+where s.idmodelu = m.idmodelu
+and s.cena = (select max(cena) from samochody); --nie dziala z cena zamiast 300000
+DBMS_OUTPUT.PUT_LINE('Najdrozszy samochod to: '||sam);
+DBMS_OUTPUT.PUT_LINE('Kosztuje: '||cena);
+END;
+
+####################
+6. Jeœli iloœæ pracowników na stanowisku 3 przekracza 3 osoby wypisaæ iloœæ powiêkszon¹ o 15%, w przeciwnym razie wypisaæ iloœæ pomniejszon¹ o 40%.
+
+SET SERVEROUTPUT ON
+DECLARE
+ile_prac Number(5,2);
+BEGIN
+select count(P.Id_pracownik) into ile_prac
+from Pracownicy P, Stanowiska St
+where P.stanowisko_pracownik = St.IdStanowiska
+and St.idstanowiska = 3;
+if ile_prac < 3
+then ile_prac := ile_prac*1.15;
+else ile_prac := ile_prac*0.6;
+end if;
+DBMS_OUTPUT.PUT_LINE('Liczba pracownikow na stanowisku sprzedawca wynosi: '||ile_prac);
+END;
+
+####################
+7. Utworzyæ tabelê pomocnicz¹ z jednym polem numerycznym i jednym tekstowym (20 znaków).
+
+create table pomocnicza
+(numer number(1),
+tekst varchar2(20))
+
+####################
+8. Za pomoc¹ pêtli for wprowadziæ wartoœci od 6 do 1 do pola numerycznego i wartoœæ ‘6...wartoœæ 1’ do pola tekstowego.
+
+declare zmienna number := 6; -- nie jest konieczne
+begin
+for zmienna in reverse 1..6 loop
+insert into pomocnicza values (zmienna, 'wartosc '||zmienna);
+end loop;
+end;

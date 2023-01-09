@@ -1,0 +1,109 @@
+####################
+1. Napisaæ procedurê, która sprawdzi której marki jest tylko jeden samochód. Nazwa marki powinna byæ wyœwietlona. Wywo³aæ procedurê.
+
+create or replace procedure wypisz_marke 
+as
+v_nazwa marki.nazwa%type;
+begin
+select m.nazwa into v_nazwa
+from marki m, samochody s, modele mo
+where s.idmodelu = mo.idmodelu and m.idmarki = mo.idmarki
+Group by  m.idmarki, m.nazwa 
+having count(1) = 3;
+DBMS_OUTPUT.PUT_LINE('Jest tylko jeden samochod marki '||v_nazwa);
+end;
+
+SET SERVEROUTPUT ON
+execute wypisz_marke;
+
+####################
+2. Utworzyæ tabelê pomocnicz¹ Pom4_2 z dwoma polami. Jedno typu znakowego maksymalnie 15 znaków, drugie numeryczne maksymalnie liczby dwucyfrowe.
+
+create table pom4_2
+(tekst varchar2(15),
+liczba number(2));
+
+####################
+3. Napisaæ procedurê, która zwróci liczbê samochodów, podanego jako parametr modelu. Nazwê modelu i liczbê samochodów wpisaæ do tabeli Pom4_2. Wywo³aæ procedurê.
+
+create or replace procedure procedure4_3 (p_model in varchar2) 
+as
+ile_sam number(5);
+begin
+select count(1) into ile_sam
+from samochody s, modele m
+where s.idmodelu = m.idmodelu
+and m.nazwa = p_model;
+DBMS_OUTPUT.PUT_LINE('Model: '||p_model||' ilosc sztuk: '||ile_sam);
+insert into pom4_2 values (p_model, ile_sam);
+end;
+
+SET SERVEROUTPUT ON
+execute procedure4_3('A6');
+
+####################
+4. Napisaæ funkcjê, która zwróci nazwê stanowiska, na którym nikt nie pracuje. Wywo³aæ funkcjê.
+
+create or replace function function4_4 return varchar2
+as
+nazwa_st stanowiska.nazwa%type;
+begin
+select s.nazwa into nazwa_st
+from stanowiska s, system.pracownicy p
+where s.idstanowiska not in (select p.idstanowiska from system.pracownicy p)
+group by s.nazwa;
+return nazwa_st;
+end;
+
+SET SERVEROUTPUT ON
+declare
+nazwa_st2 stanowiska.nazwa%type;
+begin
+nazwa_st2 := function4_4;
+DBMS_OUTPUT.PUT_LINE('Na stanowisku '||nazwa_st2||' nie jest nikt zatrudniony.');
+end;
+
+####################
+5. Napisaæ funkcjê zwracaj¹c¹ liczbê samochodów podanego w parametrze identyfikatora w³aœciciela.
+
+create or replace function function4_5 (id_wlas in number) 
+return number
+as
+ile_sam number(5);
+begin
+select count(1) into ile_sam
+from samochody s
+where s.idwlasciciela = id_wlas;
+return ile_sam;
+end;
+
+SET SERVEROUTPUT ON
+declare
+ile_sam2 number(5);
+id_wlas2 number(5) := &wp;
+begin
+ile_sam2 := function4_5(id_wlas2);
+DBMS_OUTPUT.PUT_LINE('Wlasciciel o ID: '||id_wlas2||'  posiada: '||ile_sam2||' samochod/y');
+end;
+
+####################
+6. Funkcjê z zadania 5 u¿yæ w zapytaniu do podania nazwiska i imienia w³aœciciela oraz liczby posiadanych przez niego samochodów.
+
+SET SERVEROUTPUT ON
+declare
+ile_sam2 number(5);
+imie system.klienci.imie%type;
+nazwisko system.klienci.nazwisko%type;
+id_wlas2 number(5) := &wp;
+begin
+select (imie) into imie
+from system.samochody s, system.klienci k
+where s.idwlasciciela = k.idklienta and k.idklienta = id_wlas2
+group by k.imie;
+select (nazwisko) into nazwisko
+from system.samochody s, system.klienci k
+where s.idwlasciciela = k.idklienta and k.idklienta = id_wlas2
+group by k.nazwisko;
+ile_sam2 := function4_5(id_wlas2);
+DBMS_OUTPUT.PUT_LINE('Wlasciciel '||imie||' '||nazwisko||' o numerze ID: '||id_wlas2||'  posiada: '||ile_sam2||' samochod/y ');
+end;

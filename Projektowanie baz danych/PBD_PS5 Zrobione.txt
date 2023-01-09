@@ -1,0 +1,164 @@
+############################
+1. W kursorze podaæ nazwiska i imiona klientów oraz daty podpisania umów, których termin odbioru jest 03/05/22.
+
+SET SERVEROUTPUT ON
+declare cursor c_ps7_1 
+is
+select nazwisko, imie, datapodpisania from system.klienci k, system.umowy u
+where k.idklienta=u.idklienta and u.datapodpisania='03/05/12';
+v_imie system.klienci.imie%type;
+v_nazwisko SYSTEM.klienci.nazwisko%type;
+v_data system.umowy.datapodpisania%type;
+begin
+open c_ps7_1;
+loop
+fetch c_ps7_1 into v_nazwisko, v_imie, v_data;
+exit when (c_ps7_1%notfound);
+DBMS_OUTPUT.PUT_LINE(v_nazwisko||' '||v_imie||', '||'Data: '||v_data);
+end loop;
+close c_ps7_1;
+end;
+
+############################
+2. Do tabeli pomocniczej Pom7_1 wprowadziæ wszystkie informacje o dealerach dostarczaj¹cych samochody marki podanej jako parametr kursora. 
+
+create table ps7_1 as select * from system.dealerzy; 
+delete from ps7_1;
+
+SET SERVEROUTPUT ON
+declare cursor c_ps7_2 (v_marka system.marki.nazwa%type)
+is
+select * from system.dealerzy
+where iddealera in 
+(select iddealera from system.samochody where idmodelu in 
+(select idmodelu from system.modele where idmarki in 
+(select idmarki from system.marki where nazwa = v_marka)));
+v_dealer SYSTEM.dealerzy%rowtype;
+zmienna system.marki.nazwa%type:= &wp;
+begin
+open c_ps7_2(zmienna);
+loop
+fetch c_ps7_2 into v_dealer;
+insert into ps7_1 values v_dealer;
+exit when (c_ps7_2%notfound);
+end loop;
+close c_ps7_2;
+end;
+
+
+select * from ps7_1;
+
+############################
+3. W pêtli FOR kursora podaæ nazwy marek i modeli samochodów w cenie powy¿ej 15000.
+
+SET SERVEROUTPUT ON
+declare cursor c_ps7_3 
+is
+select ma.nazwa na_ma, mo.nazwa na_mo from system.marki ma, system.modele mo, system.samochody s
+where ma.idmarki=mo.idmarki and mo.idmodelu=s.idmodelu and s.cena>15000;
+begin
+for ks in c_ps7_3
+loop
+DBMS_OUTPUT.PUT_LINE(c_ps7_3%rowcount||') '||ks.na_ma||' '||ks.na_mo);
+end loop;
+end;
+
+############################
+4. W anonimowej pêtli FOR kursora podaæ nazwiska i imiona klientów, którzy sk³adali zamówienia w 2003 roku.
+
+begin
+for ks in (select nazwisko, imie from system.klienci, system.umowy
+where system.klienci.idklienta=system.umowy.idklienta and system.umowy.datapodpisania>'02/12/31' and system.umowy.datapodpisania<'04/01/01')
+loop
+DBMS_OUTPUT.PUT_LINE(ks.nazwisko||' '||ks.imie);
+end loop;
+end;
+
+############################
+5. W tabeli pomocniczej Pom7_2 (utworzonej na tabeli pracownicy) u¿ywaj¹c kursor SELECT FOR UPDATE zmodyfikowaæ nazwiska pracowników na pisane ma³ymi literami.
+
+create table ps7_2 as select * from system.pracownicy; 
+select * from ps7_2;
+
+SET SERVEROUTPUT ON
+declare cursor c_ps7_5 
+is
+select * from ps7_2 for update of nazwisko;
+v_nazw ps7_2.nazwisko%type;
+begin
+for ks in c_ps7_5 
+loop 
+v_nazw := lower(ks.nazwisko);
+update ps7_2 set nazwisko = v_nazw 
+where current of c_ps7_5;
+end loop;
+commit;
+end;
+
+############################
+6. U¿ywaj¹c zmiennej kursora oraz rekordu podaæ pe³ne informacje o samochodach, w cenie mniejszej ni¿ 15000.
+
+SET SERVEROUTPUT ON
+declare 
+type ref_ku is ref cursor;
+re_ku ref_ku;
+rec_k system.samochody%rowtype;
+begin
+open re_ku for 'select * from system.samochody where system.samochody.cena<15000';  
+loop 
+fetch re_ku into rec_k;
+exit when re_ku%notfound;
+dbms_output.put_line('ID Samochodu: '||rec_k.idsamochodu||', ID Modelu: '||rec_k.idmodelu||', Cena: '||rec_k.cena||
+', Rok produkcji: '||rec_k.rok_prod||', Przebieg: '||rec_k.przebieg||', ID Dealera '||rec_k.iddealera||
+', Data wstawienia: '||rec_k.data_wstawienia||', ID Wlasciciela: '||rec_k.idwlasciciela||', Pojemnosc silnika: '
+||rec_k.pojsilnika);
+end loop;
+close re_ku;
+end;
+
+############################
+7. Utworzyæ pakiet, w sk³ad którego wchodziæ bêd¹ nastêpuj¹ce obiekty:
+-
+procedura z zadania 1 z PS4,
+-
+funkcja z zadania 4 z PS4.
+Wywo³aæ podprogramy z pakietu.
+
+create or replace package pack_ps7_7 as
+procedure p_ps4_1;
+function f_ps4_4 return varchar2;
+end pack_ps7_7;
+
+create or replace package body pack_ps7_7 as
+procedure p_ps4_1
+as
+v_nazwa marki.nazwa%type;
+begin
+select m.nazwa into v_nazwa
+from marki m, samochody s, modele mo
+where s.idmodelu = mo.idmodelu and m.idmarki = mo.idmarki
+Group by  m.idmarki, m.nazwa 
+having count(1) = 3;
+DBMS_OUTPUT.PUT_LINE('Jest tylko jeden samochod marki '||v_nazwa);
+end;
+function f_ps4_4 return varchar2
+as
+nazwa_st stanowiska.nazwa%type;
+begin
+select s.nazwa into nazwa_st
+from stanowiska s, system.pracownicy p
+where s.idstanowiska not in (select p.idstanowiska from system.pracownicy p)
+group by s.nazwa;
+return nazwa_st;
+end;
+end pack_ps7_7;
+
+execute pack_ps7_7.p_ps4_1;  -- URUCHOMIENIE PROCEDYRY
+
+SET SERVEROUTPUT ON -- URUCHOMIENIE FUNKCJI
+declare
+nazwa_st2 system.stanowiska.nazwa%type;
+begin
+nazwa_st2 := pack_ps7_7.f_ps4_4;
+DBMS_OUTPUT.PUT_LINE('Na stanowisku '||nazwa_st2||' nie jest nikt zatrudniony.');
+end;

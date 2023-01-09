@@ -1,0 +1,1273 @@
+#############################################
+
+PROJEKT ZALICZENIOWY
+ZAAWANSOWANE SYSTEMY BAZ DANYCH
+KAROL BUDZYŃSKI
+
+#############################################
+1. Przygotowanie odpowiedniej struktury bazy danych na wybrany temat
+
+create table abonamenty (
+id_abonament number(5) primary key,
+nazwa_abonament varchar2(100) not null unique,
+predkosc_DL varchar2(20) not null,
+predkosc_UL varchar2(20) not null, 
+cena number(5,2) not null)
+
+create table abonamenty_historia (
+id_historia number(5) primary key,
+zmiana varchar2(20),
+kto varchar2(20),
+czas timestamp,
+id_abonament number(5),
+nazwa_abonament varchar2(100),
+predkosc_DL varchar2(20),
+predkosc_UL varchar2(20), 
+cena number(5,2))
+
+create table pracownicy (
+id_pracownik number(5) primary key,
+imie_pracownik varchar2(20) not null,
+nazwisko_pracownik varchar2(20) not null,
+stanowisko_pracownik varchar2(20) not null, 
+telefon_pracownik number(9) not null unique check (length(telefon_pracownik) in (9)))
+
+create table pracownicy_historia (
+id_historia number(5) primary key,
+zmiana varchar2(20),
+kto varchar2(20),
+czas timestamp,
+id_pracownik number(5),
+imie_pracownik varchar2(20),
+nazwisko_pracownik varchar2(20),
+stanowisko_pracownik varchar2(20),
+telefon_pracownik number(9))
+
+create table adresy (
+id_adres number(5) primary key,
+ulica varchar2(20) not null,
+nr_ulicy varchar2(10) not null,
+nr_lokalu varchar2(20), 
+miasto varchar2(20) not null,
+kod_pocztowy varchar2(6)not null check (length(kod_pocztowy) in (6)))
+
+create table adresy_historia (
+id_historia number(5) primary key,
+zmiana varchar2(20),
+kto varchar2(20),
+czas timestamp,
+id_adres number(5),
+ulica varchar2(20),
+nr_ulicy varchar2(10),
+nr_lokalu varchar2(20), 
+miasto varchar2(20),
+kod_pocztowy varchar2(6))
+
+create table klienci (
+id_klient number(5) primary key,
+nazwa_klient varchar2(100),
+imie_klient varchar2(20),
+nazwisko_klient varchar2(100),
+id_adres number(5) not null,
+id_abonament number(5) not null,
+pesel number(11) unique check (length(pesel) in (11)),
+constraint fk_k_adresy foreign key (id_adres) references adresy(id_adres),
+constraint fk_k_abonamenty foreign key (id_abonament) references abonamenty(id_abonament))
+
+create table klienci_historia (
+id_historia number(5) primary key,
+zmiana varchar2(20),
+kto varchar2(20),
+czas timestamp,
+id_klient number(5),
+nazwa_klient varchar2(100),
+imie_klient varchar2(20),
+nazwisko_klient varchar2(100),
+id_adres number(5),
+id_abonament number(5),
+pesel number(11))
+
+create table wplaty (
+id_wplaty number(5) primary key,
+nazwa_wplaty varchar2(100) not null,
+kwota_wplaty number(10,2) not null,
+data_wplaty date not null,
+id_klient number(5) not null,
+constraint fk_w_klienci foreign key (id_klient) references klienci(id_klient))
+
+create table wplaty_historia (
+id_historia number(5) primary key,
+zmiana varchar2(20),
+kto varchar2(20),
+czas timestamp,
+id_wplaty number(5),
+nazwa_wplaty varchar2(100),
+kwota_wplaty number(10,2),
+data_wplaty date,
+id_klient number(5))
+
+create table zlecenia (
+id_zlecenia number(5) primary key,
+nazwa_zlecenia varchar2(100) not null,
+data_zlecenia date not null,
+opis_zlecenia varchar2(1000) not null,
+id_klient number(5) not null,
+id_pracownik number(5) not null,
+constraint fk_z_klienci foreign key (id_klient) references klienci(id_klient),
+constraint fk_z_pracownicy foreign key (id_pracownik) references pracownicy(id_pracownik))
+
+create table zlecenia_historia (
+id_historia number(5) primary key,
+zmiana varchar2(20),
+kto varchar2(20),
+czas timestamp,
+id_zlecenia number(5),
+nazwa_zlecenia varchar2(100),
+data_zlecenia date not null,
+opis_zlecenia varchar2(1000),
+id_klient number(5),
+id_pracownik number(5))
+
+#############################################
+2. Ładowanie do bazy przykładowych danych 
+
+TABELA ABONAMENTY
+
+insert into abonamenty (id_abonament, nazwa_abonament, predkosc_DL, predkosc_UL, cena) 
+values (1, 'Lekki', '100 Mbit', '20 Mbit', 49.90);
+insert into abonamenty (id_abonament, nazwa_abonament, predkosc_DL, predkosc_UL, cena) 
+values (2, 'Sredni', '200 Mbit', '40 Mbit', 59.90);
+insert into abonamenty (id_abonament, nazwa_abonament, predkosc_DL, predkosc_UL, cena) 
+values (3, 'Duzy', '300 Mbit', '60 Mbit', 69.90);
+insert into abonamenty (id_abonament, nazwa_abonament, predkosc_DL, predkosc_UL, cena) 
+values (4, 'Wielki', '500 Mbit', '100 Mbit', 79.90);
+insert into abonamenty (id_abonament, nazwa_abonament, predkosc_DL, predkosc_UL, cena) 
+values (5, 'Giga', '1000 Mbit', '200 Mbit', 89.90);
+insert into abonamenty (id_abonament, nazwa_abonament, predkosc_DL, predkosc_UL, cena) 
+values (6, 'Symetryczny 1', '100 Mbit', '100 Mbit', 109.90);
+insert into abonamenty (id_abonament, nazwa_abonament, predkosc_DL, predkosc_UL, cena) 
+values (7, 'Symetryczny 2', '200 Mbit', '200 Mbit', 149.90) ;
+insert into abonamenty (id_abonament, nazwa_abonament, predkosc_DL, predkosc_UL, cena) 
+values (8, 'Symetryczny 3', '300 Mbit', '300 Mbit', 209.90);
+
+TABELA PRACOWNICY
+
+insert into pracownicy (id_pracownik, imie_pracownik, nazwisko_pracownik, stanowisko_pracownik, telefon_pracownik) 
+values (1, 'Karol', 'Budzynski', 'Serwisant', 693739421);
+insert into pracownicy (id_pracownik, imie_pracownik, nazwisko_pracownik, stanowisko_pracownik, telefon_pracownik) 
+values (2, 'Edyta', 'Zalewska', 'Ksiegowa', 765739421);
+insert into pracownicy (id_pracownik, imie_pracownik, nazwisko_pracownik, stanowisko_pracownik, telefon_pracownik) 
+values (3, 'Tomasz', 'Raczkowski', 'Sprzedawca', 987394221);
+insert into pracownicy (id_pracownik, imie_pracownik, nazwisko_pracownik, stanowisko_pracownik, telefon_pracownik) 
+values (4, 'Wojciech', 'Pawlowski', 'Serwisant', 637821987);
+insert into pracownicy (id_pracownik, imie_pracownik, nazwisko_pracownik, stanowisko_pracownik, telefon_pracownik) 
+values (5, 'Dominik', 'Stefanski', 'Monter', 546129834);
+
+TABELA ADRESY
+
+insert into adresy (id_adres, ulica, nr_ulicy, nr_lokalu, miasto, kod_pocztowy) 
+values (1, 'Mickiewicza', '10', '32', 'Pisz', '12-200');
+insert into adresy (id_adres, ulica, nr_ulicy, nr_lokalu, miasto, kod_pocztowy) 
+values (2, 'Dworcowa', '11A', '22', 'Pisz', '12-200');
+insert into adresy (id_adres, ulica, nr_ulicy, nr_lokalu, miasto, kod_pocztowy) 
+values (3, 'Okopowa', '3', '15', 'Pisz', '12-200');
+insert into adresy (id_adres, ulica, nr_ulicy, nr_lokalu, miasto, kod_pocztowy) 
+values (4, 'Reja', '32', '', 'Olsztyn', '15-200');
+insert into adresy (id_adres, ulica, nr_ulicy, nr_lokalu, miasto, kod_pocztowy) 
+values (5, 'Wojska Polskiego', '92', '1', 'Pisz', '12-200');
+insert into adresy (id_adres, ulica, nr_ulicy, nr_lokalu, miasto, kod_pocztowy) 
+values (6, 'Warszawska', '34', '', 'Elk', '14-200');
+insert into adresy (id_adres, ulica, nr_ulicy, nr_lokalu, miasto, kod_pocztowy) 
+values (7, 'Matejki', '3', '51', 'Pisz', '12-200');
+insert into adresy (id_adres, ulica, nr_ulicy, nr_lokalu, miasto, kod_pocztowy) 
+values (8, 'Tartaczna', '10', '', 'Orzysz', '13-200');
+
+TABELA KLIENCI
+
+insert into klienci (id_klient, nazwa_klient, imie_klient, nazwisko_klient, id_adres, id_abonament, pesel) 
+values (1, '', 'Dominika', 'Pakula', 1, 1, 87090917121);
+insert into klienci (id_klient, nazwa_klient, imie_klient, nazwisko_klient, id_adres, id_abonament, pesel) 
+values (2, 'Firma Uslugowa BOSS', 'Bosacki', 'Pawel', 2, 6, 67010212654);
+insert into klienci (id_klient, nazwa_klient, imie_klient, nazwisko_klient, id_adres, id_abonament, pesel) 
+values (3, '', 'Pawel', 'Tomczyk', 3, 2, 84090121876);
+insert into klienci (id_klient, nazwa_klient, imie_klient, nazwisko_klient, id_adres, id_abonament, pesel) 
+values (4, '', 'Fred', 'Flinston', 4, 3, 19032219890);
+insert into klienci (id_klient, nazwa_klient, imie_klient, nazwisko_klient, id_adres, id_abonament, pesel) 
+values (5, 'PHU DOM', 'Karol', 'Karski', 5, 1, 88060418987);
+insert into klienci (id_klient, nazwa_klient, imie_klient, nazwisko_klient, id_adres, id_abonament, pesel) 
+values (6, '', 'Roman', 'Dabrowski', 6, 2, 55070416546);
+insert into klienci (id_klient, nazwa_klient, imie_klient, nazwisko_klient, id_adres, id_abonament, pesel) 
+values (7, '', 'Justyna', 'Grala', 7, 1, 77082712345);
+insert into klienci (id_klient, nazwa_klient, imie_klient, nazwisko_klient, id_adres, id_abonament, pesel) 
+values (8, '', 'Pamela', 'Ogorek', 8, 8, 90122210987);
+insert into klienci (id_klient, nazwa_klient, imie_klient, nazwisko_klient, id_adres, id_abonament, pesel) 
+values (9, 'Zaklad Fryzjerski MONIA', 'Monika', 'Just', 3, 1, 92083017678);
+insert into klienci (id_klient, nazwa_klient, imie_klient, nazwisko_klient, id_adres, id_abonament, pesel) 
+values (10, '', 'Ryszard', 'Stanko', 5, 4, 88090876789);
+
+TABELA WPLATY
+
+insert into wplaty (id_wplaty, nazwa_wplaty, kwota_wplaty, data_wplaty, id_klient) 
+values (1, 'Abonament Wrzesien 2021', 49.90, '2021-09-15', 1);
+insert into wplaty (id_wplaty, nazwa_wplaty, kwota_wplaty, data_wplaty, id_klient) 
+values (2, 'Abonament Kwiecien 2019', 69.90, '2019-04-15', 7);
+insert into wplaty (id_wplaty, nazwa_wplaty, kwota_wplaty, data_wplaty, id_klient) 
+values (3, 'Abonament Styczen 2020', 59.90, '2020-01-15', 4);
+insert into wplaty (id_wplaty, nazwa_wplaty, kwota_wplaty, data_wplaty, id_klient) 
+values (4, 'Abonament za 2021', 600, '2021-01-15', 8);
+insert into wplaty (id_wplaty, nazwa_wplaty, kwota_wplaty, data_wplaty, id_klient) 
+values (5, 'Usluga serwisowa', 149.90, '2021-04-15', 9);
+insert into wplaty (id_wplaty, nazwa_wplaty, kwota_wplaty, data_wplaty, id_klient) 
+values (6, 'Sprzet kompu', 1500, '2020-10-15', 10);
+insert into wplaty (id_wplaty, nazwa_wplaty, kwota_wplaty, data_wplaty, id_klient) 
+values (7, 'Oplata serwisowa', 200, '2021-08-15', 5);
+insert into wplaty (id_wplaty, nazwa_wplaty, kwota_wplaty, data_wplaty, id_klient) 
+values (8, 'Abonament IX-X 2021', 100, '2021-09-15', 3);
+insert into wplaty (id_wplaty, nazwa_wplaty, kwota_wplaty, data_wplaty, id_klient) 
+values (9, 'Abonament Grudzien 2021', 49.90, '2021-12-15', 2);
+insert into wplaty (id_wplaty, nazwa_wplaty, kwota_wplaty, data_wplaty, id_klient) 
+values (10, 'Abonament Styczen 2022', 59.90, '2022-01-15', 7);
+
+TABELA ZLECENIA
+
+insert into zlecenia (id_zlecenia, nazwa_zlecenia, opis_zlecenia, data_zlecenia, id_klient, id_pracownik) 
+values (1, 'Instalacja', 'Wykonanie instalacji internetu', '2021-09-15', 1, 5);
+insert into zlecenia (id_zlecenia, nazwa_zlecenia, opis_zlecenia, data_zlecenia, id_klient, id_pracownik) 
+values (2, 'Sprawdzenie zaleglosci', 'Sprawdzenie salda klienta', '2020-07-15', 2, 2);
+insert into zlecenia (id_zlecenia, nazwa_zlecenia, opis_zlecenia, data_zlecenia, id_klient, id_pracownik) 
+values (3, 'Brak internetu', 'Skonfigurowanie routera', '2021-07-15', 4, 1);
+insert into zlecenia (id_zlecenia, nazwa_zlecenia, opis_zlecenia, data_zlecenia, id_klient, id_pracownik) 
+values (4, 'Instalacja', 'Wykonanie instalacji internetu', '2019-09-15', 8, 5);
+insert into zlecenia (id_zlecenia, nazwa_zlecenia, opis_zlecenia, data_zlecenia, id_klient, id_pracownik) 
+values (5, 'Konfiguracja komputera', 'Instalacja systemu Windows', '2022-01-15', 10, 4);
+insert into zlecenia (id_zlecenia, nazwa_zlecenia, opis_zlecenia, data_zlecenia, id_klient, id_pracownik) 
+values (6, 'Przygotowanie oferty handlowej', 'Oferta na zakup sprzetu komputerowego', '2021-04-15', 9, 3);
+insert into zlecenia (id_zlecenia, nazwa_zlecenia, opis_zlecenia, data_zlecenia, id_klient, id_pracownik) 
+values (7, 'Instalacja', 'Wykonanie instalacji internetu', '2018-06-15', 6, 5);
+insert into zlecenia (id_zlecenia, nazwa_zlecenia, opis_zlecenia, data_zlecenia, id_klient, id_pracownik) 
+values (8, 'Brak internetu', 'Naprawa kabla', '2021-03-12', 3, 1);
+insert into zlecenia (id_zlecenia, nazwa_zlecenia, opis_zlecenia, data_zlecenia, id_klient, id_pracownik) 
+values (9, 'Sporzadzenie nowej umowy', 'Zmiana abonamentu', '2022-02-15', 4, 3);
+insert into zlecenia (id_zlecenia, nazwa_zlecenia, opis_zlecenia, data_zlecenia, id_klient, id_pracownik) 
+values (10, 'Instalacja', 'Wykonanie instalacji internetu', '2022-05-15', 3, 5);
+
+#############################################
+3. Procedury, funkcje, wyzwalacze obsługujące bazę
+
+PROCEDURY DODAWANIA REKORDÓW
+
+Procedura dodawania rekordów do tabeli ABONAMENTY (wyjątek sprawdzający czy istnieje abonament o podanej nazwie)
+CREATE OR REPLACE procedure dodaj_abonament (Nazwa IN abonamenty.nazwa_abonament%TYPE, DL IN abonamenty.predkosc_dl%TYPE,
+    UL IN abonamenty.predkosc_ul%TYPE, cena IN abonamenty.cena%TYPE) IS 
+id_abo abonamenty.id_abonament%TYPE; 
+BEGIN 
+SELECT id_abo INTO id_abo FROM abonamenty WHERE (abonamenty.nazwa_abonament = Nazwa);
+DBMS_OUTPUT.put_line('Abonament o tej nazwie istnieje');
+EXCEPTION
+WHEN NO_DATA_FOUND THEN
+SELECT NVL(Max(abonamenty.id_abonament)+1,1) INTO id_abo FROM abonamenty;
+INSERT INTO abonamenty VALUES(id_abo, Nazwa, DL, UL, cena); 
+DBMS_OUTPUT.put_line('Dodano nowy abonament pod numerem id: '||id_abo);
+COMMIT;
+END;
+
+Procedura dodawania rekordów do tabeli PRACOWNICY (wyjątek sprawdzający numer telefonu)
+CREATE OR REPLACE procedure dodaj_pracownika (imie IN pracownicy.imie_pracownik%TYPE, nazwisko IN pracownicy.nazwisko_pracownik%TYPE,
+    stanowisko IN pracownicy.stanowisko_pracownik%TYPE, telefon IN pracownicy.telefon_pracownik%TYPE) IS 
+id_prac pracownicy.id_pracownik%TYPE;
+exep_telefon EXCEPTION;
+BEGIN 
+IF LENGTH(telefon) NOT IN (9) THEN RAISE exep_telefon;
+END IF;
+SELECT id_prac INTO id_prac FROM pracownicy WHERE (pracownicy.telefon_pracownik = telefon);
+DBMS_OUTPUT.put_line('Pracownik o podanym numerze telefonu istnieje');
+EXCEPTION
+WHEN NO_DATA_FOUND THEN
+SELECT NVL(Max(pracownicy.id_pracownik)+1,1) INTO id_prac FROM pracownicy; 
+INSERT INTO pracownicy VALUES(id_prac, imie, nazwisko, stanowisko, telefon); 
+DBMS_OUTPUT.put_line('Dodano nowego pracownika pod numerem id: '||id_prac);
+COMMIT;
+WHEN exep_telefon THEN
+DBMS_OUTPUT.put_line('Niepoprawny numer telefonu');
+END;
+
+Procedura dodawania rekordów do tabeli KLIENCI i ADRESY (wyjątek sprawdzający pesel i kod pocztowy)
+CREATE OR REPLACE procedure dodaj_klienta (nazwa IN klienci.nazwa_klient%TYPE, imie IN klienci.imie_klient%TYPE,
+    nazwisko IN klienci.nazwisko_klient%TYPE, pesel2 IN klienci.pesel%TYPE, id_abo IN klienci.id_abonament%TYPE,
+    ulica2 IN adresy.ulica%TYPE, nr_uli IN adresy.nr_ulicy%TYPE, nr_lok IN adresy.nr_lokalu%TYPE,
+    miasto2 IN adresy.miasto%TYPE, kod IN adresy.kod_pocztowy%TYPE) IS 
+id_kli klienci.id_klient%TYPE;
+id_adr adresy.id_adres%TYPE;
+exep_pesel EXCEPTION;
+exep_kod EXCEPTION;
+v_pes number(5);
+BEGIN 
+IF LENGTH(pesel2) NOT IN (11) THEN RAISE exep_pesel;
+END IF;
+IF LENGTH(kod) NOT IN (6) THEN RAISE exep_kod;
+END IF;
+SELECT COUNT(*) INTO v_pes FROM klienci WHERE klienci.pesel = pesel2;
+IF v_pes < 1 THEN
+SELECT id_adres INTO id_adr FROM adresy WHERE (adresy.ulica = ulica2 AND adresy.nr_ulicy = nr_uli AND
+    adresy.nr_lokalu = nr_lok AND adresy.miasto = miasto2 AND adresy.kod_pocztowy = kod);
+SELECT NVL(Max(klienci.id_klient)+1,1) INTO id_kli FROM klienci;
+INSERT INTO klienci VALUES (id_kli, nazwa, imie, nazwisko, id_adr, id_abo, pesel2);
+DBMS_OUTPUT.put_line('Dodano nowego klienta pod numerem id: '||id_kli);
+COMMIT;
+ELSE
+DBMS_OUTPUT.put_line('W bazie istnieje klient o numerze pesel: '||pesel2);
+END IF;
+EXCEPTION 
+WHEN NO_DATA_FOUND THEN 
+SELECT NVL(Max(adresy.id_adres)+1,1) INTO id_adr FROM adresy;
+INSERT INTO adresy VALUES(id_adr, ulica2, nr_uli, nr_lok, miasto2, kod);
+DBMS_OUTPUT.put_line('Dodano nowy adres pod numerem id: '||id_adr);
+SELECT NVL(Max(klienci.id_klient)+1,1) INTO id_kli FROM klienci;
+INSERT INTO klienci VALUES (id_kli, nazwa, imie, nazwisko, id_adr, id_abo, pesel2);
+DBMS_OUTPUT.put_line('Dodano nowego klienta pod numerem id: '||id_kli);
+COMMIT;
+WHEN exep_pesel THEN
+DBMS_OUTPUT.put_line('Niepoprawny numer pesel');
+WHEN exep_kod THEN
+DBMS_OUTPUT.put_line('Niepoprawny kod pocztowy');
+END;
+
+Procedura dodawania rekordów do tabeli ADRESY
+CREATE OR REPLACE procedure dodaj_adres (ulica2 IN adresy.ulica%TYPE, nr_uli IN adresy.nr_ulicy%TYPE, nr_lok IN adresy.nr_lokalu%TYPE,
+    miasto2 IN adresy.miasto%TYPE, kod IN adresy.kod_pocztowy%TYPE) IS 
+id_adr adresy.id_adres%TYPE;
+exep_kod EXCEPTION;
+v_1 number(5);
+BEGIN 
+IF LENGTH(kod) NOT IN (6) THEN RAISE exep_kod;
+END IF;
+SELECT adresy.id_adres INTO id_adr FROM adresy WHERE (adresy.ulica = ulica2 AND adresy.nr_ulicy = nr_uli AND
+    adresy.nr_lokalu = nr_lok AND adresy.miasto = miasto2 AND adresy.kod_pocztowy = kod);
+DBMS_OUTPUT.put_line('Podany adres istnieje pod numerem id: '||id_adr);
+EXCEPTION 
+WHEN NO_DATA_FOUND THEN 
+SELECT NVL(Max(adresy.id_adres)+1,1) INTO id_adr FROM adresy;
+INSERT INTO adresy VALUES(id_adr, ulica2, nr_uli, nr_lok, miasto2, kod);
+DBMS_OUTPUT.put_line('Dodano nowy adres pod numerem id: '||id_adr);
+COMMIT;
+WHEN exep_kod THEN
+DBMS_OUTPUT.put_line('Niepoprawny kod pocztowy');
+END;
+
+Procedura dodawania rekordów do tabeli ZLECENIA
+CREATE OR REPLACE procedure dodaj_zlecenie (nazwa IN zlecenia.nazwa_zlecenia%TYPE, data_z IN zlecenia.data_zlecenia%TYPE,
+    opis IN zlecenia.opis_zlecenia%TYPE, id_kli IN zlecenia.id_klient%TYPE, id_prac IN zlecenia.id_pracownik%TYPE) IS 
+id_zle zlecenia.id_zlecenia%TYPE; 
+BEGIN 
+SELECT NVL(Max(zlecenia.id_zlecenia)+1,1) INTO id_zle FROM zlecenia;
+INSERT INTO zlecenia VALUES(id_zle, nazwa, data_z, opis, id_kli, id_prac); 
+DBMS_OUTPUT.put_line('Dodano nowe zlecenie pod numerem id: '||id_zle);
+COMMIT;
+END;
+
+Procedura dodawania rekordów do tabeli WPLATY
+CREATE OR REPLACE procedure dodaj_wplate (nazwa IN wplaty.nazwa_wplaty%TYPE, kwota IN wplaty.kwota_wplaty%TYPE,
+    data_wpl IN wplaty.data_wplaty%TYPE, id_kli IN wplaty.id_klient%TYPE) IS 
+id_wpl zlecenia.id_zlecenia%TYPE; 
+BEGIN 
+SELECT NVL(Max(wplaty.id_wplaty)+1,1) INTO id_wpl FROM wplaty;
+INSERT INTO wplaty VALUES(id_wpl, nazwa, kwota, data_wpl, id_kli); 
+DBMS_OUTPUT.put_line('Dodano nowa wplate pod numerem id: '||id_wpl);
+COMMIT;
+END;
+
+PROCEDURY USUWANIA REKORDÓW
+
+Procedura usuwania rekordów z tabeli ABONAMENTY (parametr nazwa_abonamentu)
+CREATE OR REPLACE PROCEDURE usun_abonament(nazwa IN abonamenty.nazwa_abonament%TYPE) IS
+no_abo_deleted EXCEPTION;
+BEGIN
+DELETE FROM abonamenty WHERE abonamenty.nazwa_abonament = nazwa;
+IF SQL%NOTFOUND THEN RAISE no_abo_deleted;
+ELSE 
+DBMS_OUTPUT.put_line('Usunieto abonament o nazwie: '||nazwa);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_abo_deleted THEN
+DBMS_OUTPUT.put_line('Brak abonamentu o nazwie: '||nazwa);
+END;
+
+Procedura usuwania rekordów z tabeli PRACOWNICY (parametry imie_pracownik, nazwisko_pracownik)
+CREATE OR REPLACE PROCEDURE usun_pracownika(imie IN pracownicy.imie_pracownik%TYPE, nazwisko IN pracownicy.nazwisko_pracownik%TYPE) IS
+no_prac_deleted EXCEPTION;
+BEGIN
+DELETE FROM pracownicy WHERE (pracownicy.imie_pracownik = imie AND pracownicy.nazwisko_pracownik = nazwisko);
+IF SQL%NOTFOUND THEN RAISE no_prac_deleted;
+ELSE 
+DBMS_OUTPUT.put_line('Usunieto pracownika: '||imie||' '||nazwisko);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_prac_deleted THEN
+DBMS_OUTPUT.put_line('Brak pracownika: '||imie||' '||nazwisko);
+END;
+
+Procedura usuwania rekordów z tabeli KLIENCI (parametry imie_klient, nazwisko_klient)
+CREATE OR REPLACE PROCEDURE usun_klienta(imie IN klienci.imie_klient%TYPE, nazwisko IN klienci.nazwisko_klient%TYPE) IS
+no_kli_deleted EXCEPTION;
+BEGIN
+DELETE FROM klienci WHERE (klienci.imie_klient = imie AND klienci.nazwisko_klient = nazwisko);
+IF SQL%NOTFOUND THEN RAISE no_kli_deleted;
+ELSE 
+DBMS_OUTPUT.put_line('Usunieto klienta: '||imie||' '||nazwisko);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_kli_deleted THEN
+DBMS_OUTPUT.put_line('Brak klienta: '||imie||' '||nazwisko);
+END;
+
+Procedura usuwania rekordów z tabeli ADRESY (id_adres)
+CREATE OR REPLACE PROCEDURE usun_adres(id_adr IN adresy.id_adres%TYPE) IS
+no_adr_deleted EXCEPTION;
+BEGIN
+DELETE FROM adresy WHERE adresy.id_adres = id_adr;
+IF SQL%NOTFOUND THEN RAISE no_adr_deleted;
+ELSE 
+DBMS_OUTPUT.put_line('Usunieto adres o numerze id: '||id_adr);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_adr_deleted THEN
+DBMS_OUTPUT.put_line('Brak adresu o numerze id: '||id_adr);
+END;
+
+Procedura usuwania rekordów z tabeli ZLECENIA (id_zlecenia)
+CREATE OR REPLACE PROCEDURE usun_zlecenie(id_zlec IN zlecenia.id_zlecenia%TYPE) IS
+no_zlec_deleted EXCEPTION;
+BEGIN
+DELETE FROM zlecenia WHERE zlecenia.id_zlecenia = id_zlec;
+IF SQL%NOTFOUND THEN RAISE no_zlec_deleted;
+ELSE 
+DBMS_OUTPUT.put_line('Usunieto zlecenie o numerze id: '||id_zlec);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_zlec_deleted THEN
+DBMS_OUTPUT.put_line('Brak zlecenia o numerze id: '||id_zlec);
+END;
+
+Procedura usuwania rekordów z tabeli WPLATY (id_wplaty)
+CREATE OR REPLACE PROCEDURE usun_wplate(id_wpla IN wplaty.id_wplaty%TYPE) IS
+no_wpla_deleted EXCEPTION;
+BEGIN
+DELETE FROM wplaty WHERE wplaty.id_wplaty = id_wpla;
+IF SQL%NOTFOUND THEN RAISE no_wpla_deleted;
+ELSE 
+DBMS_OUTPUT.put_line('Usunieto wplate o numerze id: '||id_wpla);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_wpla_deleted THEN
+DBMS_OUTPUT.put_line('Brak wplaty o numerze id: '||id_wpla);
+END;
+
+PROCEDURY AKTUALIZACJI REKORDÓW
+
+Procedura zmieniania rekordów z tabeli ABONAMENTY (zmiana ceny abonamentu o podanej nazwie)
+CREATE OR REPLACE PROCEDURE zmien_cene_abonamentu(nazwa abonamenty.nazwa_abonament%TYPE, cena2 abonamenty.cena%TYPE) IS
+no_abo_updated EXCEPTION;
+BEGIN
+UPDATE abonamenty SET abonamenty.cena = cena2 WHERE abonamenty.nazwa_abonament = nazwa;
+IF SQL%NOTFOUND THEN RAISE no_abo_updated;
+ELSE 
+DBMS_OUTPUT.put_line('Nowa cena abonamentu '||nazwa||' to: '||cena2);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_abo_updated THEN
+DBMS_OUTPUT.put_line('W bazie nie ma abonamentu o nazwie: '||nazwa);
+END;
+
+Procedura zmieniania rekordów z tabeli PRACOWNICY (zmiana stanowiska pracownika o podanym imieniu i nazwisku)
+CREATE OR REPLACE PROCEDURE zmien_stanowisko_pracownika(imie pracownicy.imie_pracownik%TYPE, nazwisko pracownicy.nazwisko_pracownik%TYPE,
+    stanowisko pracownicy.stanowisko_pracownik%TYPE) IS
+no_prac_updated EXCEPTION;
+BEGIN
+UPDATE pracownicy SET pracownicy.stanowisko_pracownik = stanowisko WHERE (pracownicy.imie_pracownik = imie AND 
+    pracownicy.nazwisko_pracownik = nazwisko);
+IF SQL%NOTFOUND THEN RAISE no_prac_updated;
+ELSE 
+DBMS_OUTPUT.put_line('Nowe stanowwisko pracownika '||imie||' '||nazwisko|| ' to: '||stanowisko);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_prac_updated THEN
+DBMS_OUTPUT.put_line('W bazie nie ma pracownika: '||imie||' '||nazwisko);
+END;
+
+Procedura zmieniania rekordów z tabeli KLIENCI (zmiana abonamentu klienta o podanym imieniu i nazwisku)
+CREATE OR REPLACE PROCEDURE zmien_abonament_klienta(imie klienci.imie_klient%TYPE, nazwisko klienci.nazwisko_klient%TYPE,
+    id_abo klienci.id_abonament%TYPE) IS
+no_kli_updated EXCEPTION;
+nazwa_abo abonamenty.nazwa_abonament%TYPE;
+BEGIN
+SELECT abonamenty.nazwa_abonament INTO nazwa_abo FROM abonamenty WHERE abonamenty.id_abonament = id_abo;
+UPDATE klienci SET klienci.id_abonament = id_abo WHERE (klienci.imie_klient = imie AND 
+    klienci.nazwisko_klient = nazwisko);
+IF SQL%NOTFOUND THEN RAISE no_kli_updated;
+ELSE 
+DBMS_OUTPUT.put_line('Nowy abonament klienta '||imie||' '||nazwisko|| ' to: '||nazwa_abo);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_kli_updated THEN
+DBMS_OUTPUT.put_line('W bazie nie ma klienta: '||imie||' '||nazwisko);
+WHEN NO_DATA_FOUND THEN
+DBMS_OUTPUT.put_line('W bazie nie ma abonamentu o id: '||id_abo);
+END;
+
+Procedura zmieniania rekordów z tabeli ADRESY (zmiana ulicy o podanym mumerze id)
+CREATE OR REPLACE PROCEDURE zmien_ulica_adres(id_adr adresy.id_adres%TYPE, ulica2 adresy.ulica%TYPE) IS
+no_adr_updated EXCEPTION;
+BEGIN
+UPDATE adresy SET adresy.ulica = ulica2 WHERE adresy.id_adres = id_adr;
+IF SQL%NOTFOUND THEN RAISE no_adr_updated;
+ELSE 
+DBMS_OUTPUT.put_line('Nowa nazwa ulicy adresu o id = '||id_adr||' to: '||ulica2);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_adr_updated THEN
+DBMS_OUTPUT.put_line('W bazie nie ma adresu o id: '||id_adr);
+END;
+
+Procedura zmieniania rekordów z tabeli ZLECENIA (zmiana opisu zlecenia o podanym mumerze id)
+CREATE OR REPLACE PROCEDURE zmien_opis_zlecenia(id_zlec zlecenia.id_zlecenia%TYPE, opis zlecenia.opis_zlecenia%TYPE) IS
+v_opis zlecenia.opis_zlecenia%TYPE;
+BEGIN
+SELECT zlecenia.opis_zlecenia INTO v_opis FROM zlecenia WHERE zlecenia.id_zlecenia = id_zlec;
+v_opis := v_opis||' | '||opis;
+UPDATE zlecenia SET zlecenia.opis_zlecenia = v_opis WHERE zlecenia.id_zlecenia = id_zlec;
+DBMS_OUTPUT.put_line('Zmodyfikowano opis zlecenia o id = '||id_zlec);
+COMMIT;
+EXCEPTION
+WHEN NO_DATA_FOUND THEN
+DBMS_OUTPUT.put_line('W bazie nie ma zlecenia o id: '||id_zlec);
+END;
+
+Procedura zmieniania rekordów z tabeli WPLATY (zmiana kwoty wplaty o podanym mumerze id)
+CREATE OR REPLACE PROCEDURE zmien_kwote_wplaty(id_wpl wplaty.id_wplaty%TYPE, kwota wplaty.kwota_wplaty%TYPE) IS
+no_wpl_updated EXCEPTION;
+BEGIN
+UPDATE wplaty SET wplaty.kwota_wplaty = kwota WHERE wplaty.id_wplaty = id_wpl;
+IF SQL%NOTFOUND THEN RAISE no_wpl_updated;
+ELSE 
+DBMS_OUTPUT.put_line('Nowa kwota wplaty o id = '||id_wpl||' to: '||kwota);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_wpl_updated THEN
+DBMS_OUTPUT.put_line('W bazie nie ma wplaty o id: '||id_wpl);
+END;
+
+#############################################
+FUNKCJE
+
+Funkcja sprawdzająca poprawność numeru PESEL
+CREATE or REPLACE FUNCTION czy_pesel_OK (pesel IN NUMBER) RETURN VARCHAR2 IS
+suma NUMBER;
+BEGIN
+IF LENGTH(pesel) <> 11 THEN RETURN 'N';
+END IF;
+suma := MOD(10 - MOD(SUBSTR(PESEL, 1, 1) * 1 + SUBSTR(PESEL, 2, 1) * 3 + SUBSTR(PESEL, 3, 1) * 7 
++ SUBSTR(PESEL, 4, 1) * 9 + SUBSTR(PESEL, 5, 1) * 1 + SUBSTR(PESEL, 6, 1) * 3 + SUBSTR(PESEL, 7, 1) * 7
++ SUBSTR(PESEL, 8, 1) * 9 + SUBSTR(PESEL, 9, 1) * 1 + SUBSTR(PESEL, 10, 1) * 3,10),10);
+IF suma = SUBSTR(pesel, 11, 1) THEN RETURN 'T';
+ELSE RETURN 'N';
+END IF;
+EXCEPTION
+WHEN OTHERS THEN RETURN 'N';
+END;
+
+BEGIN
+IF czy_pesel_ok(84060417114) = 'T' THEN
+DBMS_OUTPUT.put_line('T');
+ELSE 
+DBMS_OUTPUT.put_line('N');
+END IF;
+END;
+
+#############################################
+WYZWALACZE
+
+AFTER INSERT
+
+Logowanie historii do bazy po insercie na tabeli ABONAMENTY
+CREATE OR REPLACE TRIGGER abonamenty_after_insert AFTER INSERT ON abonamenty
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(abonamenty_historia.id_historia)+1,1) INTO id_his FROM abonamenty_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO abonamenty_historia(id_historia, zmiana, kto, czas, id_abonament, nazwa_abonament,
+     predkosc_dl, predkosc_ul, cena)
+VALUES(id_his, 'insert', v_username, v_czas, :new.id_abonament, :new.nazwa_abonament,
+     :new.predkosc_dl, :new.predkosc_ul, :new.cena);
+END;
+
+Logowanie historii do bazy po insercie na tabeli PRACOWNICY
+CREATE OR REPLACE TRIGGER pracownicy_after_insert AFTER INSERT ON pracownicy
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(pracownicy_historia.id_historia)+1,1) INTO id_his FROM pracownicy_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO pracownicy_historia(id_historia, zmiana, kto, czas, id_pracownik, imie_pracownik,
+     nazwisko_pracownik, stanowisko_pracownik, telefon_pracownik)
+VALUES(id_his, 'insert', v_username, v_czas, :new.id_pracownik, :new.imie_pracownik,
+     :new.nazwisko_pracownik, :new.stanowisko_pracownik, :new.telefon_pracownik);
+END;
+
+Logowanie historii do bazy po insercie na tabeli KLIENCI
+CREATE OR REPLACE TRIGGER klienci_after_insert AFTER INSERT ON klienci
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(klienci_historia.id_historia)+1,1) INTO id_his FROM klienci_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO klienci_historia(id_historia, zmiana, kto, czas, id_klient, nazwa_klient,
+     imie_klient, nazwisko_klient, id_adres, id_abonament, pesel)
+VALUES(id_his, 'insert', v_username, v_czas, :new.id_klient, :new.nazwa_klient,
+     :new.imie_klient, :new.nazwisko_klient, :new.id_adres, :new.id_abonament, :new.pesel);
+END;
+
+Logowanie historii do bazy po insercie na tabeli ADRESY
+CREATE OR REPLACE TRIGGER adresy_after_insert AFTER INSERT ON adresy
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(adresy_historia.id_historia)+1,1) INTO id_his FROM adresy_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO adresy_historia(id_historia, zmiana, kto, czas, id_adres, ulica,
+     nr_ulicy, nr_lokalu, miasto, kod_pocztowy)
+VALUES(id_his, 'insert', v_username, v_czas, :new.id_adres, :new.ulica,
+     :new.nr_ulicy, :new.nr_lokalu, :new.miasto, :new.kod_pocztowy);
+END;
+
+Logowanie historii do bazy po insercie na tabeli ZLECENIA
+CREATE OR REPLACE TRIGGER zlecenia_after_insert AFTER INSERT ON zlecenia
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(zlecenia_historia.id_historia)+1,1) INTO id_his FROM zlecenia_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO zlecenia_historia(id_historia, zmiana, kto, czas, id_zlecenia, nazwa_zlecenia,
+     data_zlecenia, opis_zlecenia, id_klient, id_pracownik)
+VALUES(id_his, 'insert', v_username, v_czas, :new.id_zlecenia, :new.nazwa_zlecenia,
+     :new.data_zlecenia, :new.opis_zlecenia, :new.id_klient, :new.id_pracownik);
+END;
+
+Logowanie historii do bazy po insercie na tabeli WPLATY
+CREATE or REPLACE TRIGGER wplaty_after_insert AFTER INSERT ON wplaty
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(wplaty_historia.id_historia)+1,1) INTO id_his FROM wplaty_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO wplaty_historia(id_historia, zmiana, kto, czas, id_wplaty, nazwa_wplaty,
+     kwota_wplaty, data_wplaty, id_klient)
+VALUES(id_his, 'insert', v_username, v_czas, :new.id_wplaty, :new.nazwa_wplaty,
+     :new.kwota_wplaty, :new.data_wplaty, :new.id_klient);
+END;
+
+AFTER DELETE
+
+Logowanie historii do bazy po delete na tabeli ABONAMENTY
+CREATE OR REPLACE TRIGGER abonamenty_after_delete AFTER DELETE ON abonamenty
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(abonamenty_historia.id_historia)+1,1) INTO id_his FROM abonamenty_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO abonamenty_historia(id_historia, zmiana, kto, czas, id_abonament, nazwa_abonament,
+     predkosc_dl, predkosc_ul, cena)
+VALUES(id_his, 'delete', v_username, v_czas, :old.id_abonament, :old.nazwa_abonament,
+     :old.predkosc_dl, :old.predkosc_ul, :old.cena);
+END;
+
+Logowanie historii do bazy po delete na tabeli PRACOWNICY
+CREATE OR REPLACE TRIGGER pracownicy_after_delete AFTER DELETE ON pracownicy
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(pracownicy_historia.id_historia)+1,1) INTO id_his FROM pracownicy_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO pracownicy_historia(id_historia, zmiana, kto, czas, id_pracownik, imie_pracownik,
+     nazwisko_pracownik, stanowisko_pracownik, telefon_pracownik)
+VALUES(id_his, 'delete', v_username, v_czas, :old.id_pracownik, :old.imie_pracownik,
+     :old.nazwisko_pracownik, :old.stanowisko_pracownik, :old.telefon_pracownik);
+END;
+
+Logowanie historii do bazy po delete na tabeli KLIENCI
+CREATE OR REPLACE TRIGGER klienci_after_delete AFTER DELETE ON klienci
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(klienci_historia.id_historia)+1,1) INTO id_his FROM klienci_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO klienci_historia(id_historia, zmiana, kto, czas, id_klient, nazwa_klient,
+     imie_klient, nazwisko_klient, id_adres, id_abonament, pesel)
+VALUES(id_his, 'delete', v_username, v_czas, :old.id_klient, :old.nazwa_klient,
+     :old.imie_klient, :old.nazwisko_klient, :old.id_adres, :old.id_abonament, :old.pesel);
+END;
+
+Logowanie historii do bazy po delete na tabeli ADRESY
+CREATE OR REPLACE TRIGGER adresy_after_delete AFTER DELETE ON adresy
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(adresy_historia.id_historia)+1,1) INTO id_his FROM adresy_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO adresy_historia(id_historia, zmiana, kto, czas, id_adres, ulica,
+     nr_ulicy, nr_lokalu, miasto, kod_pocztowy)
+VALUES(id_his, 'delete', v_username, v_czas, :old.id_adres, :old.ulica,
+     :old.nr_ulicy, :old.nr_lokalu, :old.miasto, :old.kod_pocztowy);
+END;
+
+Logowanie historii do bazy po delete na tabeli ZLECENIA
+CREATE OR REPLACE TRIGGER zlecenia_after_delete AFTER DELETE ON zlecenia
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(zlecenia_historia.id_historia)+1,1) INTO id_his FROM zlecenia_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO zlecenia_historia(id_historia, zmiana, kto, czas, id_zlecenia, nazwa_zlecenia,
+     data_zlecenia, opis_zlecenia, id_klient, id_pracownik)
+VALUES(id_his, 'delete', v_username, v_czas, :old.id_zlecenia, :old.nazwa_zlecenia,
+     :old.data_zlecenia, :old.opis_zlecenia, :old.id_klient, :old.id_pracownik);
+END;
+
+Logowanie historii do bazy po delete na tabeli WPLATY
+CREATE or REPLACE TRIGGER wplaty_after_delete AFTER DELETE ON wplaty
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(wplaty_historia.id_historia)+1,1) INTO id_his FROM wplaty_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO wplaty_historia(id_historia, zmiana, kto, czas, id_wplaty, nazwa_wplaty,
+     kwota_wplaty, data_wplaty, id_klient)
+VALUES(id_his, 'delete', v_username, v_czas, :old.id_wplaty, :old.nazwa_wplaty,
+     :old.kwota_wplaty, :old.data_wplaty, :old.id_klient);
+END;
+
+AFTER UPDATE
+
+Logowanie historii do bazy po update na tabeli ABONAMENTY
+CREATE OR REPLACE TRIGGER abonamenty_after_update AFTER UPDATE ON abonamenty
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(abonamenty_historia.id_historia)+1,1) INTO id_his FROM abonamenty_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO abonamenty_historia(id_historia, zmiana, kto, czas, id_abonament, nazwa_abonament,
+     predkosc_dl, predkosc_ul, cena)
+VALUES(id_his, 'update-old', v_username, v_czas, :old.id_abonament, :old.nazwa_abonament,
+     :old.predkosc_dl, :old.predkosc_ul, :old.cena);
+INSERT INTO abonamenty_historia(id_historia, zmiana, kto, czas, id_abonament, nazwa_abonament,
+     predkosc_dl, predkosc_ul, cena)
+VALUES(id_his + 1, 'update-new', v_username, v_czas, :new.id_abonament, :new.nazwa_abonament,
+     :new.predkosc_dl, :new.predkosc_ul, :new.cena);
+END;
+
+Logowanie historii do bazy po update na tabeli PRACOWNICY
+CREATE OR REPLACE TRIGGER pracownicy_after_update AFTER UPDATE ON pracownicy
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(pracownicy_historia.id_historia)+1,1) INTO id_his FROM pracownicy_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO pracownicy_historia(id_historia, zmiana, kto, czas, id_pracownik, imie_pracownik,
+     nazwisko_pracownik, stanowisko_pracownik, telefon_pracownik)
+VALUES(id_his, 'update-old', v_username, v_czas, :old.id_pracownik, :old.imie_pracownik,
+     :old.nazwisko_pracownik, :old.stanowisko_pracownik, :old.telefon_pracownik);
+INSERT INTO pracownicy_historia(id_historia, zmiana, kto, czas, id_pracownik, imie_pracownik,
+     nazwisko_pracownik, stanowisko_pracownik, telefon_pracownik)
+VALUES(id_his + 1, 'update-new', v_username, v_czas, :new.id_pracownik, :new.imie_pracownik,
+     :new.nazwisko_pracownik, :new.stanowisko_pracownik, :new.telefon_pracownik);
+END;
+
+Logowanie historii do bazy po update na tabeli KLIENCI
+CREATE OR REPLACE TRIGGER klienci_after_update AFTER update ON klienci
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(klienci_historia.id_historia)+1,1) INTO id_his FROM klienci_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO klienci_historia(id_historia, zmiana, kto, czas, id_klient, nazwa_klient,
+     imie_klient, nazwisko_klient, id_adres, id_abonament, pesel)
+VALUES(id_his, 'update-old', v_username, v_czas, :old.id_klient, :old.nazwa_klient,
+     :old.imie_klient, :old.nazwisko_klient, :old.id_adres, :old.id_abonament, :old.pesel);
+INSERT INTO klienci_historia(id_historia, zmiana, kto, czas, id_klient, nazwa_klient,
+     imie_klient, nazwisko_klient, id_adres, id_abonament, pesel)
+VALUES(id_his + 1, 'update-new', v_username, v_czas, :new.id_klient, :new.nazwa_klient,
+     :new.imie_klient, :new.nazwisko_klient, :new.id_adres, :new.id_abonament, :new.pesel);
+END;
+
+Logowanie historii do bazy po update na tabeli ADRESY
+CREATE or REPLACE TRIGGER adresy_after_update AFTER UPDATE ON adresy
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(adresy_historia.id_historia)+1,1) INTO id_his FROM adresy_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO adresy_historia(id_historia, zmiana, kto, czas, id_adres, ulica,
+     nr_ulicy, nr_lokalu, miasto, kod_pocztowy)
+VALUES(id_his, 'update-old', v_username, v_czas, :old.id_adres, :old.ulica,
+     :old.nr_ulicy, :old.nr_lokalu, :old.miasto, :old.kod_pocztowy);
+INSERT INTO adresy_historia(id_historia, zmiana, kto, czas, id_adres, ulica,
+     nr_ulicy, nr_lokalu, miasto, kod_pocztowy)
+VALUES(id_his + 1, 'update-new', v_username, v_czas, :new.id_adres, :new.ulica,
+     :new.nr_ulicy, :new.nr_lokalu, :new.miasto, :new.kod_pocztowy);
+END;
+
+Logowanie historii do bazy po update na tabeli ZLECENIA
+CREATE OR REPLACE TRIGGER zlecenia_after_update AFTER UPDATE ON zlecenia
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(zlecenia_historia.id_historia)+1,1) INTO id_his FROM zlecenia_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO zlecenia_historia(id_historia, zmiana, kto, czas, id_zlecenia, nazwa_zlecenia,
+     data_zlecenia, opis_zlecenia, id_klient, id_pracownik)
+VALUES(id_his, 'update-old', v_username, v_czas, :old.id_zlecenia, :old.nazwa_zlecenia,
+     :old.data_zlecenia, :old.opis_zlecenia, :old.id_klient, :old.id_pracownik);
+INSERT INTO zlecenia_historia(id_historia, zmiana, kto, czas, id_zlecenia, nazwa_zlecenia,
+     data_zlecenia, opis_zlecenia, id_klient, id_pracownik)
+VALUES(id_his + 1, 'update-new', v_username, v_czas, :new.id_zlecenia, :new.nazwa_zlecenia,
+     :new.data_zlecenia, :new.opis_zlecenia, :new.id_klient, :new.id_pracownik);
+END;
+
+Logowanie historii do bazy po update na tabeli WPLATY
+CREATE or REPLACE TRIGGER wplaty_after_update AFTER UPDATE ON wplaty
+FOR EACH ROW
+DECLARE
+id_his varchar2(10);
+v_username varchar2(10);
+v_czas timestamp;
+BEGIN
+SELECT NVL(Max(wplaty_historia.id_historia)+1,1) INTO id_his FROM wplaty_historia; 
+SELECT user INTO v_username FROM dual;
+SELECT CURRENT_TIMESTAMP INTO v_czas FROM DUAL;
+INSERT INTO wplaty_historia(id_historia, zmiana, kto, czas, id_wplaty, nazwa_wplaty,
+     kwota_wplaty, data_wplaty, id_klient)
+VALUES(id_his, 'update-old', v_username, v_czas, :old.id_wplaty, :old.nazwa_wplaty,
+     :old.kwota_wplaty, :old.data_wplaty, :old.id_klient);
+INSERT INTO wplaty_historia(id_historia, zmiana, kto, czas, id_wplaty, nazwa_wplaty,
+     kwota_wplaty, data_wplaty, id_klient)
+VALUES(id_his + 1, 'update-new', v_username, v_czas, :new.id_wplaty, :new.nazwa_wplaty,
+     :new.kwota_wplaty, :new.data_wplaty, :new.id_klient);
+END;
+
+#############################################
+PAKIETY
+
+Pakiet DODAJ (zawierający procedury dodające rekordy do poszczególnych tabel)
+CREATE OR REPLACE PACKAGE dodaj AS
+PROCEDURE dodaj_abonament (Nazwa IN abonamenty.nazwa_abonament%TYPE, DL IN abonamenty.predkosc_dl%TYPE,
+    UL IN abonamenty.predkosc_ul%TYPE, cena IN abonamenty.cena%TYPE);
+PROCEDURE dodaj_pracownika (imie IN pracownicy.imie_pracownik%TYPE, nazwisko IN pracownicy.nazwisko_pracownik%TYPE,
+    stanowisko IN pracownicy.stanowisko_pracownik%TYPE, telefon IN pracownicy.telefon_pracownik%TYPE);
+PROCEDURE dodaj_klienta (nazwa IN klienci.nazwa_klient%TYPE, imie IN klienci.imie_klient%TYPE,
+    nazwisko IN klienci.nazwisko_klient%TYPE, pesel2 IN klienci.pesel%TYPE, id_abo IN klienci.id_abonament%TYPE,
+    ulica2 IN adresy.ulica%TYPE, nr_uli IN adresy.nr_ulicy%TYPE, nr_lok IN adresy.nr_lokalu%TYPE,
+    miasto2 IN adresy.miasto%TYPE, kod IN adresy.kod_pocztowy%TYPE);
+PROCEDURE dodaj_adres (ulica2 IN adresy.ulica%TYPE, nr_uli IN adresy.nr_ulicy%TYPE, nr_lok IN adresy.nr_lokalu%TYPE,
+    miasto2 IN adresy.miasto%TYPE, kod IN adresy.kod_pocztowy%TYPE);
+PROCEDURE dodaj_zlecenie (nazwa IN zlecenia.nazwa_zlecenia%TYPE, data_z IN zlecenia.data_zlecenia%TYPE,
+    opis IN zlecenia.opis_zlecenia%TYPE, id_kli IN zlecenia.id_klient%TYPE, id_prac IN zlecenia.id_pracownik%TYPE);
+PROCEDURE dodaj_wplate (nazwa IN wplaty.nazwa_wplaty%TYPE, kwota IN wplaty.kwota_wplaty%TYPE,
+    data_wpl IN wplaty.data_wplaty%TYPE, id_kli IN wplaty.id_klient%TYPE);
+END;
+
+CREATE OR REPLACE PACKAGE BODY dodaj AS
+procedure dodaj_abonament (Nazwa IN abonamenty.nazwa_abonament%TYPE, DL IN abonamenty.predkosc_dl%TYPE,
+    UL IN abonamenty.predkosc_ul%TYPE, cena IN abonamenty.cena%TYPE) IS 
+id_abo abonamenty.id_abonament%TYPE; 
+BEGIN 
+SELECT id_abo INTO id_abo FROM abonamenty WHERE (abonamenty.nazwa_abonament = Nazwa);
+DBMS_OUTPUT.put_line('Abonament o tej nazwie istnieje');
+EXCEPTION
+WHEN NO_DATA_FOUND THEN
+SELECT NVL(Max(abonamenty.id_abonament)+1,1) INTO id_abo FROM abonamenty;
+INSERT INTO abonamenty VALUES(id_abo, Nazwa, DL, UL, cena); 
+DBMS_OUTPUT.put_line('Dodano nowy abonament pod numerem id: '||id_abo);
+COMMIT;
+END;
+
+procedure dodaj_pracownika (imie IN pracownicy.imie_pracownik%TYPE, nazwisko IN pracownicy.nazwisko_pracownik%TYPE,
+    stanowisko IN pracownicy.stanowisko_pracownik%TYPE, telefon IN pracownicy.telefon_pracownik%TYPE) IS 
+id_prac pracownicy.id_pracownik%TYPE;
+exep_telefon EXCEPTION;
+BEGIN 
+IF LENGTH(telefon) NOT IN (9) THEN RAISE exep_telefon;
+END IF;
+SELECT id_prac INTO id_prac FROM pracownicy WHERE (pracownicy.telefon_pracownik = telefon);
+DBMS_OUTPUT.put_line('Pracownik o podanym numerze telefonu istnieje');
+EXCEPTION
+WHEN NO_DATA_FOUND THEN
+SELECT NVL(Max(pracownicy.id_pracownik)+1,1) INTO id_prac FROM pracownicy; 
+INSERT INTO pracownicy VALUES(id_prac, imie, nazwisko, stanowisko, telefon); 
+DBMS_OUTPUT.put_line('Dodano nowego pracownika pod numerem id: '||id_prac);
+COMMIT;
+WHEN exep_telefon THEN
+DBMS_OUTPUT.put_line('Niepoprawny numer telefonu');
+END;
+
+procedure dodaj_klienta (nazwa IN klienci.nazwa_klient%TYPE, imie IN klienci.imie_klient%TYPE,
+    nazwisko IN klienci.nazwisko_klient%TYPE, pesel2 IN klienci.pesel%TYPE, id_abo IN klienci.id_abonament%TYPE,
+    ulica2 IN adresy.ulica%TYPE, nr_uli IN adresy.nr_ulicy%TYPE, nr_lok IN adresy.nr_lokalu%TYPE,
+    miasto2 IN adresy.miasto%TYPE, kod IN adresy.kod_pocztowy%TYPE) IS 
+id_kli klienci.id_klient%TYPE;
+id_adr adresy.id_adres%TYPE;
+exep_pesel EXCEPTION;
+exep_kod EXCEPTION;
+v_pes number(5);
+BEGIN 
+IF LENGTH(pesel2) NOT IN (11) THEN RAISE exep_pesel;
+END IF;
+IF LENGTH(kod) NOT IN (6) THEN RAISE exep_kod;
+END IF;
+SELECT COUNT(*) INTO v_pes FROM klienci WHERE klienci.pesel = pesel2;
+IF v_pes < 1 THEN
+SELECT id_adres INTO id_adr FROM adresy WHERE (adresy.ulica = ulica2 AND adresy.nr_ulicy = nr_uli AND
+    adresy.nr_lokalu = nr_lok AND adresy.miasto = miasto2 AND adresy.kod_pocztowy = kod);
+SELECT NVL(Max(klienci.id_klient)+1,1) INTO id_kli FROM klienci;
+INSERT INTO klienci VALUES (id_kli, nazwa, imie, nazwisko, id_adr, id_abo, pesel2);
+DBMS_OUTPUT.put_line('Dodano nowego klienta pod numerem id: '||id_kli);
+COMMIT;
+ELSE
+DBMS_OUTPUT.put_line('W bazie istnieje klient o numerze pesel: '||pesel2);
+END IF;
+EXCEPTION 
+WHEN NO_DATA_FOUND THEN 
+SELECT NVL(Max(adresy.id_adres)+1,1) INTO id_adr FROM adresy;
+INSERT INTO adresy VALUES(id_adr, ulica2, nr_uli, nr_lok, miasto2, kod);
+DBMS_OUTPUT.put_line('Dodano nowy adres pod numerem id: '||id_adr);
+SELECT NVL(Max(klienci.id_klient)+1,1) INTO id_kli FROM klienci;
+INSERT INTO klienci VALUES (id_kli, nazwa, imie, nazwisko, id_adr, id_abo, pesel2);
+DBMS_OUTPUT.put_line('Dodano nowego klienta pod numerem id: '||id_kli);
+COMMIT;
+WHEN exep_pesel THEN
+DBMS_OUTPUT.put_line('Niepoprawny numer pesel');
+WHEN exep_kod THEN
+DBMS_OUTPUT.put_line('Niepoprawny kod pocztowy');
+END;
+
+procedure dodaj_adres (ulica2 IN adresy.ulica%TYPE, nr_uli IN adresy.nr_ulicy%TYPE, nr_lok IN adresy.nr_lokalu%TYPE,
+    miasto2 IN adresy.miasto%TYPE, kod IN adresy.kod_pocztowy%TYPE) IS 
+id_adr adresy.id_adres%TYPE;
+exep_kod EXCEPTION;
+v_1 number(5);
+BEGIN 
+IF LENGTH(kod) NOT IN (6) THEN RAISE exep_kod;
+END IF;
+SELECT adresy.id_adres INTO id_adr FROM adresy WHERE (adresy.ulica = ulica2 AND adresy.nr_ulicy = nr_uli AND
+    adresy.nr_lokalu = nr_lok AND adresy.miasto = miasto2 AND adresy.kod_pocztowy = kod);
+DBMS_OUTPUT.put_line('Podany adres istnieje pod numerem id: '||id_adr);
+EXCEPTION 
+WHEN NO_DATA_FOUND THEN 
+SELECT NVL(Max(adresy.id_adres)+1,1) INTO id_adr FROM adresy;
+INSERT INTO adresy VALUES(id_adr, ulica2, nr_uli, nr_lok, miasto2, kod);
+DBMS_OUTPUT.put_line('Dodano nowy adres pod numerem id: '||id_adr);
+COMMIT;
+WHEN exep_kod THEN
+DBMS_OUTPUT.put_line('Niepoprawny kod pocztowy');
+END;
+
+procedure dodaj_zlecenie (nazwa IN zlecenia.nazwa_zlecenia%TYPE, data_z IN zlecenia.data_zlecenia%TYPE,
+    opis IN zlecenia.opis_zlecenia%TYPE, id_kli IN zlecenia.id_klient%TYPE, id_prac IN zlecenia.id_pracownik%TYPE) IS 
+id_zle zlecenia.id_zlecenia%TYPE; 
+BEGIN 
+SELECT NVL(Max(zlecenia.id_zlecenia)+1,1) INTO id_zle FROM zlecenia;
+INSERT INTO zlecenia VALUES(id_zle, nazwa, data_z, opis, id_kli, id_prac); 
+DBMS_OUTPUT.put_line('Dodano nowe zlecenie pod numerem id: '||id_zle);
+COMMIT;
+END;
+
+procedure dodaj_wplate (nazwa IN wplaty.nazwa_wplaty%TYPE, kwota IN wplaty.kwota_wplaty%TYPE,
+    data_wpl IN wplaty.data_wplaty%TYPE, id_kli IN wplaty.id_klient%TYPE) IS 
+id_wpl zlecenia.id_zlecenia%TYPE; 
+BEGIN 
+SELECT NVL(Max(wplaty.id_wplaty)+1,1) INTO id_wpl FROM wplaty;
+INSERT INTO wplaty VALUES(id_wpl, nazwa, kwota, data_wpl, id_kli); 
+DBMS_OUTPUT.put_line('Dodano nowa wplate pod numerem id: '||id_wpl);
+COMMIT;
+END;
+END;
+
+Pakiet USUN (zawierający procedury kasujące rekordy w poszczególnych tabelach)
+CREATE OR REPLACE PACKAGE usun AS
+PROCEDURE usun_abonament(nazwa IN abonamenty.nazwa_abonament%TYPE);
+PROCEDURE usun_pracownika(imie IN pracownicy.imie_pracownik%TYPE, nazwisko IN pracownicy.nazwisko_pracownik%TYPE);
+PROCEDURE usun_klienta(imie IN klienci.imie_klient%TYPE, nazwisko IN klienci.nazwisko_klient%TYPE);
+PROCEDURE usun_adres(id_adr IN adresy.id_adres%TYPE);
+PROCEDURE usun_zlecenie(id_zlec IN zlecenia.id_zlecenia%TYPE);
+PROCEDURE usun_wplate(id_wpla IN wplaty.id_wplaty%TYPE);
+END;
+
+CREATE OR REPLACE PACKAGE BODY usun AS
+PROCEDURE usun_abonament(nazwa IN abonamenty.nazwa_abonament%TYPE) IS
+no_abo_deleted EXCEPTION;
+BEGIN
+DELETE FROM abonamenty WHERE abonamenty.nazwa_abonament = nazwa;
+IF SQL%NOTFOUND THEN RAISE no_abo_deleted;
+ELSE 
+DBMS_OUTPUT.put_line('Usunieto abonament o nazwie: '||nazwa);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_abo_deleted THEN
+DBMS_OUTPUT.put_line('Brak abonamentu o nazwie: '||nazwa);
+END;
+
+PROCEDURE usun_pracownika(imie IN pracownicy.imie_pracownik%TYPE, nazwisko IN pracownicy.nazwisko_pracownik%TYPE) IS
+no_prac_deleted EXCEPTION;
+BEGIN
+DELETE FROM pracownicy WHERE (pracownicy.imie_pracownik = imie AND pracownicy.nazwisko_pracownik = nazwisko);
+IF SQL%NOTFOUND THEN RAISE no_prac_deleted;
+ELSE 
+DBMS_OUTPUT.put_line('Usunieto pracownika: '||imie||' '||nazwisko);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_prac_deleted THEN
+DBMS_OUTPUT.put_line('Brak pracownika: '||imie||' '||nazwisko);
+END;
+
+PROCEDURE usun_klienta(imie IN klienci.imie_klient%TYPE, nazwisko IN klienci.nazwisko_klient%TYPE) IS
+no_kli_deleted EXCEPTION;
+BEGIN
+DELETE FROM klienci WHERE (klienci.imie_klient = imie AND klienci.nazwisko_klient = nazwisko);
+IF SQL%NOTFOUND THEN RAISE no_kli_deleted;
+ELSE 
+DBMS_OUTPUT.put_line('Usunieto klienta: '||imie||' '||nazwisko);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_kli_deleted THEN
+DBMS_OUTPUT.put_line('Brak klienta: '||imie||' '||nazwisko);
+END;
+
+PROCEDURE usun_adres(id_adr IN adresy.id_adres%TYPE) IS
+no_adr_deleted EXCEPTION;
+BEGIN
+DELETE FROM adresy WHERE adresy.id_adres = id_adr;
+IF SQL%NOTFOUND THEN RAISE no_adr_deleted;
+ELSE 
+DBMS_OUTPUT.put_line('Usunieto adres o numerze id: '||id_adr);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_adr_deleted THEN
+DBMS_OUTPUT.put_line('Brak adresu o numerze id: '||id_adr);
+END;
+
+PROCEDURE usun_zlecenie(id_zlec IN zlecenia.id_zlecenia%TYPE) IS
+no_zlec_deleted EXCEPTION;
+BEGIN
+DELETE FROM zlecenia WHERE zlecenia.id_zlecenia = id_zlec;
+IF SQL%NOTFOUND THEN RAISE no_zlec_deleted;
+ELSE 
+DBMS_OUTPUT.put_line('Usunieto zlecenie o numerze id: '||id_zlec);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_zlec_deleted THEN
+DBMS_OUTPUT.put_line('Brak zlecenia o numerze id: '||id_zlec);
+END;
+
+PROCEDURE usun_wplate(id_wpla IN wplaty.id_wplaty%TYPE) IS
+no_wpla_deleted EXCEPTION;
+BEGIN
+DELETE FROM wplaty WHERE wplaty.id_wplaty = id_wpla;
+IF SQL%NOTFOUND THEN RAISE no_wpla_deleted;
+ELSE 
+DBMS_OUTPUT.put_line('Usunieto wplate o numerze id: '||id_wpla);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_wpla_deleted THEN
+DBMS_OUTPUT.put_line('Brak wplaty o numerze id: '||id_wpla);
+END;
+END;
+
+Pakiet ZMIEN (zawierający procedury aktualizujące rekordy w poszczególnych tabelach)
+CREATE OR REPLACE PACKAGE zmien AS
+PROCEDURE zmien_cene_abonamentu(nazwa abonamenty.nazwa_abonament%TYPE, cena2 abonamenty.cena%TYPE);
+PROCEDURE zmien_stanowisko_pracownika(imie pracownicy.imie_pracownik%TYPE, nazwisko pracownicy.nazwisko_pracownik%TYPE,
+    stanowisko pracownicy.stanowisko_pracownik%TYPE);
+PROCEDURE zmien_abonament_klienta(imie klienci.imie_klient%TYPE, nazwisko klienci.nazwisko_klient%TYPE,
+    id_abo klienci.id_abonament%TYPE);
+PROCEDURE zmien_ulica_adres(id_adr adresy.id_adres%TYPE, ulica2 adresy.ulica%TYPE);
+PROCEDURE zmien_opis_zlecenia(id_zlec zlecenia.id_zlecenia%TYPE, opis zlecenia.opis_zlecenia%TYPE);
+PROCEDURE zmien_kwote_wplaty(id_wpl wplaty.id_wplaty%TYPE, kwota wplaty.kwota_wplaty%TYPE);
+END;
+
+CREATE OR REPLACE PACKAGE BODY zmien AS
+PROCEDURE zmien_cene_abonamentu(nazwa abonamenty.nazwa_abonament%TYPE, cena2 abonamenty.cena%TYPE) IS
+no_abo_updated EXCEPTION;
+BEGIN
+UPDATE abonamenty SET abonamenty.cena = cena2 WHERE abonamenty.nazwa_abonament = nazwa;
+IF SQL%NOTFOUND THEN RAISE no_abo_updated;
+ELSE 
+DBMS_OUTPUT.put_line('Nowa cena abonamentu '||nazwa||' to: '||cena2);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_abo_updated THEN
+DBMS_OUTPUT.put_line('W bazie nie ma abonamentu o nazwie: '||nazwa);
+END;
+
+PROCEDURE zmien_stanowisko_pracownika(imie pracownicy.imie_pracownik%TYPE, nazwisko pracownicy.nazwisko_pracownik%TYPE,
+    stanowisko pracownicy.stanowisko_pracownik%TYPE) IS
+no_prac_updated EXCEPTION;
+BEGIN
+UPDATE pracownicy SET pracownicy.stanowisko_pracownik = stanowisko WHERE (pracownicy.imie_pracownik = imie AND 
+    pracownicy.nazwisko_pracownik = nazwisko);
+IF SQL%NOTFOUND THEN RAISE no_prac_updated;
+ELSE 
+DBMS_OUTPUT.put_line('Nowe stanowwisko pracownika '||imie||' '||nazwisko|| ' to: '||stanowisko);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_prac_updated THEN
+DBMS_OUTPUT.put_line('W bazie nie ma pracownika: '||imie||' '||nazwisko);
+END;
+
+PROCEDURE zmien_abonament_klienta(imie klienci.imie_klient%TYPE, nazwisko klienci.nazwisko_klient%TYPE,
+    id_abo klienci.id_abonament%TYPE) IS
+no_kli_updated EXCEPTION;
+nazwa_abo abonamenty.nazwa_abonament%TYPE;
+BEGIN
+SELECT abonamenty.nazwa_abonament INTO nazwa_abo FROM abonamenty WHERE abonamenty.id_abonament = id_abo;
+UPDATE klienci SET klienci.id_abonament = id_abo WHERE (klienci.imie_klient = imie AND 
+    klienci.nazwisko_klient = nazwisko);
+IF SQL%NOTFOUND THEN RAISE no_kli_updated;
+ELSE 
+DBMS_OUTPUT.put_line('Nowy abonament klienta '||imie||' '||nazwisko|| ' to: '||nazwa_abo);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_kli_updated THEN
+DBMS_OUTPUT.put_line('W bazie nie ma klienta: '||imie||' '||nazwisko);
+WHEN NO_DATA_FOUND THEN
+DBMS_OUTPUT.put_line('W bazie nie ma abonamentu o id: '||id_abo);
+END;
+
+PROCEDURE zmien_ulica_adres(id_adr adresy.id_adres%TYPE, ulica2 adresy.ulica%TYPE) IS
+no_adr_updated EXCEPTION;
+BEGIN
+UPDATE adresy SET adresy.ulica = ulica2 WHERE adresy.id_adres = id_adr;
+IF SQL%NOTFOUND THEN RAISE no_adr_updated;
+ELSE 
+DBMS_OUTPUT.put_line('Nowa nazwa ulicy adresu o id = '||id_adr||' to: '||ulica2);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_adr_updated THEN
+DBMS_OUTPUT.put_line('W bazie nie ma adresu o id: '||id_adr);
+END;
+
+PROCEDURE zmien_opis_zlecenia(id_zlec zlecenia.id_zlecenia%TYPE, opis zlecenia.opis_zlecenia%TYPE) IS
+v_opis zlecenia.opis_zlecenia%TYPE;
+BEGIN
+SELECT zlecenia.opis_zlecenia INTO v_opis FROM zlecenia WHERE zlecenia.id_zlecenia = id_zlec;
+v_opis := v_opis||' | '||opis;
+UPDATE zlecenia SET zlecenia.opis_zlecenia = v_opis WHERE zlecenia.id_zlecenia = id_zlec;
+DBMS_OUTPUT.put_line('Zmodyfikowano opis zlecenia o id = '||id_zlec);
+COMMIT;
+EXCEPTION
+WHEN NO_DATA_FOUND THEN
+DBMS_OUTPUT.put_line('W bazie nie ma zlecenia o id: '||id_zlec);
+END;
+
+PROCEDURE zmien_kwote_wplaty(id_wpl wplaty.id_wplaty%TYPE, kwota wplaty.kwota_wplaty%TYPE) IS
+no_wpl_updated EXCEPTION;
+BEGIN
+UPDATE wplaty SET wplaty.kwota_wplaty = kwota WHERE wplaty.id_wplaty = id_wpl;
+IF SQL%NOTFOUND THEN RAISE no_wpl_updated;
+ELSE 
+DBMS_OUTPUT.put_line('Nowa kwota wplaty o id = '||id_wpl||' to: '||kwota);
+COMMIT;
+END IF;
+EXCEPTION
+WHEN no_wpl_updated THEN
+DBMS_OUTPUT.put_line('W bazie nie ma wplaty o id: '||id_wpl);
+END;
+END;
+

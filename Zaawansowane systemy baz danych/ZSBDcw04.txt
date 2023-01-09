@@ -1,0 +1,124 @@
+Stwórz funkcje:
+1. Zwracającą nazwę pracy dla podanego parametru id
+
+CREATE OR REPLACE FUNCTION get_job_name(v_job_id VARCHAR2) RETURN VARCHAR2 IS
+job_name VARCHAR2(100);
+BEGIN
+    SELECT job_title INTO job_name FROM jobs WHERE job_id = v_job_id;
+    RETURN job_name;
+END;
+
+BEGIN
+    DBMS_OUTPUT.put_line(get_job_name('AD_PRES'));
+END;
+
+2. zwracającą roczne zarobki (wynagrodzenie 12-to miesięczne plus premia jako wynagrodzenie * commission_pct)
+
+CREATE OR REPLACE FUNCTION get_salary_year(v_salary NUMBER, v_bonus NUMBER) RETURN NUMBER IS
+v_salary_year NUMBER(8,2);
+BEGIN
+    IF v_bonus IS NULL THEN v_salary_year := 12 * v_salary;
+    ELSE v_salary_year := 12 * v_salary + (12 * v_salary * v_bonus);
+    END IF;
+    RETURN v_salary_year;
+END;
+
+SELECT first_name, last_name, get_salary_year(salary, commission_pct) from employees
+
+3. Biorącą w nawias numer kierunkowy z numeru telefonu
+
+CREATE OR REPLACE FUNCTION get_phone_number(v_phone_number VARCHAR2) RETURN VARCHAR2 IS
+v_phone_number_end VARCHAR2(100);
+BEGIN
+    v_phone_number_end := '(' || substr(v_phone_number,1,2) || ')' || substr(v_phone_number,3);
+    RETURN v_phone_number_end;
+END;
+
+SELECT first_name, last_name, get_phone_number(phone_number) from employees
+
+4. Dla ciągu znaków zmieniającą pierwszą i ostatnią literę na wielką – pozostałe na małe
+
+CREATE OR REPLACE FUNCTION zmiana_liter(wyraz VARCHAR2) RETURN VARCHAR2 IS
+dlugosc NUMBER(10);
+zmieniony_wyraz VARCHAR2(100);
+BEGIN
+    dlugosc := LENGTH(wyraz);
+    zmieniony_wyraz := UPPER(SUBSTR(wyraz, 1, 1)) || LOWER(SUBSTR(wyraz, 2, dlugosc - 1)) || UPPER(SUBSTR(wyraz, dlugosc, 1));
+    RETURN zmieniony_wyraz;
+END;
+
+BEGIN
+    DBMS_OUTPUT.put_line(zmiana_liter('asASDasd'));
+END;
+
+Stworzyć paczki:
+1.	Składającą się ze stworzonych procedur i funkcji
+
+CREATE OR REPLACE PACKAGE for_jobs AS
+PROCEDURE add_jobs(v_job_id VARCHAR2, v_job_title VARCHAR2);
+PROCEDURE delete_jobs(v_job_id VARCHAR2);
+PROCEDURE update_jobs_title(v_job_id VARCHAR2, v_job_title VARCHAR2);
+FUNCTION get_job_name(v_job_id VARCHAR2) RETURN VARCHAR2;
+END;
+
+CREATE OR REPLACE PACKAGE BODY for_jobs AS
+PROCEDURE add_jobs(v_job_id VARCHAR2, v_job_title VARCHAR2) AS
+no_job_title EXCEPTION;
+BEGIN
+    IF v_job_title IS NULL THEN RAISE no_job_title;
+    ELSE
+        INSERT INTO jobs VALUES(v_job_id, v_job_title, null, null);
+        DBMS_OUTPUT.put_line('dodano job_id: '||v_job_id||', job_title: '||v_job_title);
+    END IF;
+EXCEPTION
+WHEN no_job_title THEN
+DBMS_OUTPUT.put_line('job_title nie może być puste');
+WHEN OTHERS THEN
+DBMS_OUTPUT.put_line('Blad przy dodawaniu danych');
+END;
+
+PROCEDURE delete_jobs(v_job_id VARCHAR2) AS
+no_jobs_deleted EXCEPTION;
+ile_rekordow NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO ile_rekordow FROM jobs WHERE job_id = v_job_id;
+    DELETE FROM jobs WHERE job_id = v_job_id;
+    IF SQL%NOTFOUND THEN RAISE no_jobs_deleted;
+    ELSE 
+    DBMS_OUTPUT.put_line('Usunieto rekordy z tabeli jobs z job_id: '||v_job_id);
+    DBMS_OUTPUT.put_line('Ilosc usunietych rekordow: '||ile_rekordow);
+    END IF;
+    EXCEPTION
+    WHEN no_jobs_deleted THEN
+    DBMS_OUTPUT.put_line('Brak rekordow w tabeli jobs z job_id: '||v_job_id);
+    DBMS_OUTPUT.put_line('Ilosc usunietych rekordow: '||ile_rekordow);
+END;
+
+PROCEDURE update_jobs_title(v_job_id VARCHAR2, v_job_title VARCHAR2) AS
+no_jobs_updated EXCEPTION;
+ile_rekordow NUMBER;
+BEGIN
+    SELECT COUNT(*) INTO ile_rekordow FROM jobs WHERE job_id = v_job_id;
+    UPDATE jobs
+        SET job_title = v_job_title
+        WHERE job_id = v_job_id;
+    IF SQL%NOTFOUND THEN RAISE no_jobs_updated;
+    ELSE 
+    DBMS_OUTPUT.put_line('Zmieniono job_title na: '||v_job_title||', dla job_id: '||v_job_id);
+    DBMS_OUTPUT.put_line('Ilosc zmodyfikowanych rekordow: '||ile_rekordow);
+    END IF;
+    EXCEPTION
+    WHEN no_jobs_updated THEN
+    DBMS_OUTPUT.put_line('W bazie nie ma job_id: '||v_job_id);
+    DBMS_OUTPUT.put_line('Ilosc zmodyfikowanych rekordow: '||ile_rekordow);
+END;
+
+FUNCTION get_job_name(v_job_id VARCHAR2) RETURN VARCHAR2 AS 
+job_name VARCHAR2(100);
+BEGIN
+    SELECT job_title INTO job_name FROM jobs WHERE job_id = v_job_id;
+    RETURN job_name;
+END;
+END;
+
+2.	Zaproponować  paczkę z procedurami i funkcjami do obsługi bazy

@@ -1,0 +1,86 @@
+create table urzadzenia_operator
+(id_urzadzenia_operator number(5) primary key,
+nazwa_urzadzenia_operator varchar2(100) not null,
+typ_urzadzenia_operator varchar2(100) not null,
+adres_ip_urzadzenia_operator varchar2(15) not null unique)
+
+create table urzadzenia_klient (
+id_urzadzenia_klient number(5) primary key,
+nazwa_urzadzenia_klient varchar2(100) not null,
+typ_urzadzenia_klient varchar2(100)not null,
+ns_urzadzenia_klient varchar2(20) not null unique, 
+adres_ip_urzadzenia_klient varchar2(15) not null unique,
+id_urzadzenia_operator number(5) not null,
+constraint fk_uk_urzadzenia_operator foreign key (id_urzadzenia_operator) references urzadzenia_operator(id_urzadzenia_operator))
+
+create table abonament (
+id_abonament number(5) primary key,
+nazwa_abonament varchar2(100) not null unique,
+predkosc_DL varchar2(20) not null,
+predkosc_UL varchar2(20) not null, 
+cena number(5,2) not null)
+
+create table pracownicy (
+id_pracownik number(5) primary key,
+imie_pracownik varchar2(20) not null,
+nazwisko_pracownik varchar2(20) not null,
+stanowisko_pracownik varchar2(20) not null, 
+telefon_pracownik number(9) not null unique check (length(telefon_pracownik) in (9)))
+
+create table adresy (
+id_adres number(5) primary key,
+ulica varchar2(20) not null,
+nr_ulicy varchar2(10) not null,
+nr_lokolu varchar2(20), 
+miasko varchar2(20) not null,
+kod_pocztowy varchar2(6)not null check (length(kod_pocztowy) in (6)))
+
+create table dane (
+id_dane number(5) primary key,
+pesel number(11) unique check (length(pesel) in (11)),
+nip varchar2(13)unique check (length(nip) in (13)),
+telefon1_dane number(9) check (length(telefon1_dane) in (9)) not null, 
+telefon2_dane number(9) check (length(telefon2_dane) in (9)),
+komentarz_dane varchar2(1000))
+
+create table klienci (
+id_klient number(5) primary key,
+nazwa_klient varchar2(100),
+imie_klient varchar2(20),
+nazwisko_klient varchar2(100),
+id_adres number(5) not null,
+pesel number(11) unique check (length(pesel) in (11)),
+nip varchar2(13)unique check (length(nip) in (13)),
+constraint fk_k_adres foreign key (id_adres) references adresy(id_adres),
+constraint fk_k_dane_pesel foreign key (pesel) references dane(pesel),
+constraint fk_k_dane_nip foreign key (nip) references dane(nip))
+
+create table umowy (
+id_umowy number(5) primary key,
+numer_umowy varchar2(10) not null unique,
+data_umowy date not null,
+czas_umowy varchar2(20) not null,
+id_abonament number(5) not null,
+id_klient number(5) not null,
+id_urzadzenia_klient number(5) not null,
+constraint fk_u_abonament foreign key (id_abonament) references abonament(id_abonament),
+constraint fk_u_klienci foreign key (id_klient) references klienci(id_klient),
+constraint fk_u_urzadzenia_klient foreign key (id_urzadzenia_klient) references urzadzenia_klient(id_urzadzenia_klient))
+
+create table wplaty (
+id_wplaty number(5) primary key,
+nazwa_wplaty varchar2(100) not null,
+kwota_wplaty number(5,2) not null,
+data_wplaty date not null,
+id_klient number(5) not null,
+constraint fk_w_klienci foreign key (id_klient) references klienci(id_klient))
+
+create table zlecenia (
+id_zlecenia number(5) primary key,
+nazwa_zlecenia varchar2(100) not null,
+data_zlecenia date not null,
+opis_zlecenia varchar2(1000) not null,
+id_klient number(5) not null,
+id_pracownik number(5) not null,
+constraint fk_z_klienci foreign key (id_klient) references klienci(id_klient),
+constraint fk_z_pracownicy foreign key (id_pracownik) references pracownicy(id_pracownik))

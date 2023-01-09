@@ -1,4 +1,4 @@
-# ZSBD - Karol Budzyński
+# Zaawansowane systemy baz danych
 ## ĆWICZENIA + PROJEKT
 
 Diagram bazy danych w pliku:
